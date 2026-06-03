@@ -81,7 +81,7 @@ export function GameInstanceCard({ game, currentPlayerId, onRegister, onUnregist
           type="button"
           onClick={() => onRegister(game.id)}
           disabled={registering}
-          className="mt-auto min-h-[44px] w-full rounded-md px-4 py-2.5 text-sm font-semibold bg-poker-gold text-poker-dark hover:bg-yellow-500 active:bg-yellow-600 transition-colors"
+          className="mt-auto min-h-[44px] w-full rounded-md px-4 py-2.5 text-sm font-semibold bg-green-600 text-white hover:bg-green-500 active:bg-green-700 transition-colors"
         >
           {registering ? 'Registering…' : `Register — $${game.buyIn}`}
         </button>
