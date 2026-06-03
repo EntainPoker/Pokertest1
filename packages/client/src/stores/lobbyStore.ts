@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { GameInstance, LobbyGameResponse, RegistrationResult, LobbyUpdatePayload } from '@spin-and-go/shared';
 import { apiFetch } from '../services/api';
+import { useAuthStore } from './authStore';
 
 /** Game instance without the createdBy field (as returned by the lobby API) */
 export type LobbyGame = Omit<GameInstance, 'createdBy'>;
@@ -59,11 +60,9 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
       set({ registering: false, registrationMessage: result.message });
 
       // Update balance in auth store (deduct buy-in)
-      const authStore = (await import('./authStore')).useAuthStore;
-      const currentBalance = authStore.getState().player?.balance ?? 0;
-      const player = authStore.getState().player;
+      const player = useAuthStore.getState().player;
       if (player) {
-        authStore.setState({ player: { ...player, balance: currentBalance - 1 } });
+        useAuthStore.setState({ player: { ...player, balance: player.balance - 1 } });
       }
 
       // Refetch games to get accurate state
@@ -86,11 +85,9 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
       set({ registering: false, registrationMessage: 'Successfully unregistered' });
 
       // Update balance in auth store (refund buy-in)
-      const authStore = (await import('./authStore')).useAuthStore;
-      const currentBalance = authStore.getState().player?.balance ?? 0;
-      const player = authStore.getState().player;
+      const player = useAuthStore.getState().player;
       if (player) {
-        authStore.setState({ player: { ...player, balance: currentBalance + 1 } });
+        useAuthStore.setState({ player: { ...player, balance: player.balance + 1 } });
       }
 
       // Refetch to get accurate state
