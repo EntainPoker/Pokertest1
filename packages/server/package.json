@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "echo 'build skipped - using tsx runtime'",
+    "build": "cd ../client && npm run build",
     "start": "npx tsx src/seeds/seed-test-accounts.ts && npx tsx src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
