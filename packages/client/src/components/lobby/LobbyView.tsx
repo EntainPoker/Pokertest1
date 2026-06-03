@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLobbyStore } from '../../stores/lobbyStore';
 import { useSocket } from '../../hooks/useSocket';
 import { GameInstanceCard } from './GameInstanceCard';
@@ -10,6 +11,7 @@ import { EmptyLobbyMessage } from './EmptyLobbyMessage';
  * Satisfies Requirements 2.1–2.6, 3.1, 3.2, 13.1.
  */
 export function LobbyView() {
+  const navigate = useNavigate();
   const {
     games,
     loading,
@@ -51,7 +53,13 @@ export function LobbyView() {
 
   const handleRegister = async (gameId: string) => {
     try {
-      await registerForGame(gameId);
+      const result = await registerForGame(gameId);
+      // Find the game to check if it's now full
+      const game = games.find(g => g.id === gameId);
+      if (game && result.playerCount >= game.maxPlayers) {
+        // Game is full — navigate to the table
+        setTimeout(() => navigate(`/table/${gameId}`), 1000);
+      }
     } catch {
       // Error is handled in the store and shown via registrationMessage
     }

@@ -58,16 +58,6 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
       );
       set({ registering: false, registrationMessage: result.message });
 
-      // Update local game state with new player count
-      const { games } = get();
-      set({
-        games: games.map((g) =>
-          g.id === gameId
-            ? { ...g, registeredPlayers: [...g.registeredPlayers, 'self'], status: result.playerCount >= g.maxPlayers ? 'full' : g.status }
-            : g,
-        ),
-      });
-
       return result;
     } catch (err: unknown) {
       const message = err && typeof err === 'object' && 'message' in err

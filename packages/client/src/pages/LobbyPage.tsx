@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useSocket } from '../hooks/useSocket';
 import { LobbyView } from '../components/lobby/LobbyView';
 import { useAuthStore } from '../stores/authStore';
+import { useLobbyStore } from '../stores/lobbyStore';
 import { disconnectSocket } from '../services/socket';
 import type { GameState as GameStatePayload } from '@spin-and-go/shared';
 
