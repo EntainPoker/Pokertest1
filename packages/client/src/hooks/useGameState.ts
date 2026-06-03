@@ -1,0 +1,199 @@
+import { useEffect, useCallback } from 'react';
+import type {
+  GameState as GameStatePayload,
+  GameDealPayload,
+  GameTurnPayload,
+  BlindLevel,
+  GameEliminatePayload,
+  TournamentResult,
+  PlayerAction,
+} from '@spin-and-go/shared';
+import { useGameStore, consumePendingAction } from '../stores/gameStore';
+import { useAuthStore } from '../stores/authStore';
+import { getSocket } from '../services/socket';
+
+/**
+ * Hook that subscribes to WebSocket game events and updates the game store.
+ *
+ * Handles:
+ * - game:start → initializes tournament and hand state
+ * - game:deal → updates hole cards (only current player's) and community cards
+ * - game:state → full state sync
+ * - game:turn → sets whose turn it is and time remaining
+ * - game:blind-change → updates blind level in tournament
+ * - game:eliminate → marks a player as eliminated
+ * - game:end → sets tournament result and game status to 'ended'
+ *
+ * Also provides sendAction to emit game:action events via WebSocket.
+ */
+export function useGameState() {
+  const store = useGameStore();
+  const player = useAuthStore((s) => s.player);
+  const currentPlayerId = player?.id ?? '';
+
+  const sendAction = useCallback(
+    (action: PlayerAction) => {
+      const socket = getSocket();
+      socket.emit('game:action', action);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const socket = getSocket();
+
+    // --- game:start ---
+    const handleGameStart = (payload: GameStatePayload) => {
+      const { handState, tournament } = payload;
+
+      // Extract current player's hole cards (privacy: only our cards)
+      const myPlayer = handState.players.find(
+        (p) => p.playerId === currentPlayerId,
+      );
+      const myHoleCards = myPlayer?.holeCards ?? [];
+
+      // Determine if it's our turn
+      const currentTurnPlayer =
+        handState.players[handState.currentPlayerIndex];
+      const isMyTurn = currentTurnPlayer?.playerId === currentPlayerId;
+
+      useGameStore.setState({
+        handState,
+        tournament,
+        gameStatus: 'playing',
+        myHoleCards,
+        isMyTurn,
+        turnTimeRemaining: handState.turnTimeoutSeconds,
+        tournamentResult: null,
+      });
+    };
+
+    // --- game:deal ---
+    const handleGameDeal = (payload: GameDealPayload) => {
+      const { holeCards, communityCards } = payload;
+
+      useGameStore.setState((state) => {
+        // Only store hole cards if they were sent to us (server sends per-player)
+        const newHoleCards =
+          holeCards.length > 0 ? holeCards : state.myHoleCards;
+
+        const updatedHandState = state.handState
+          ? { ...state.handState, communityCards }
+          : state.handState;
+
+        return {
+          myHoleCards: newHoleCards,
+          handState: updatedHandState,
+        };
+      });
+    };
+
+    // --- game:state ---
+    const handleGameState = (payload: GameStatePayload) => {
+      const { handState, tournament } = payload;
+
+      // Extract current player's hole cards (privacy)
+      const myPlayer = handState.players.find(
+        (p) => p.playerId === currentPlayerId,
+      );
+      const myHoleCards = myPlayer?.holeCards ?? [];
+
+      // Determine if it's our turn
+      const currentTurnPlayer =
+        handState.players[handState.currentPlayerIndex];
+      const isMyTurn = currentTurnPlayer?.playerId === currentPlayerId;
+
+      useGameStore.setState({
+        handState,
+        tournament,
+        myHoleCards,
+        isMyTurn,
+        turnTimeRemaining: handState.turnTimeoutSeconds,
+      });
+    };
+
+    // --- game:turn ---
+    const handleGameTurn = (payload: GameTurnPayload) => {
+      const isMyTurn = payload.playerId === currentPlayerId;
+
+      useGameStore.setState({
+        isMyTurn,
+        turnTimeRemaining: payload.timeRemaining,
+      });
+    };
+
+    // --- game:blind-change ---
+    const handleBlindChange = (payload: BlindLevel) => {
+      useGameStore.setState((state) => {
+        if (!state.tournament) return {};
+
+        return {
+          tournament: {
+            ...state.tournament,
+            currentBlindLevel: payload.level,
+          },
+        };
+      });
+    };
+
+    // --- game:eliminate ---
+    const handleEliminate = (payload: GameEliminatePayload) => {
+      useGameStore.setState((state) => {
+        if (!state.tournament) return {};
+
+        const updatedPlayers = state.tournament.players.map((p) =>
+          p.playerId === payload.playerId
+            ? {
+                ...p,
+                status: 'eliminated' as const,
+                finishPosition: payload.position,
+                eliminatedAt: new Date(),
+              }
+            : p,
+        );
+
+        return {
+          tournament: {
+            ...state.tournament,
+            players: updatedPlayers,
+          },
+        };
+      });
+    };
+
+    // --- game:end ---
+    const handleGameEnd = (payload: TournamentResult) => {
+      useGameStore.setState({
+        gameStatus: 'ended',
+        tournamentResult: payload,
+        isMyTurn: false,
+      });
+    };
+
+    // Subscribe to all game events
+    socket.on('game:start', handleGameStart);
+    socket.on('game:deal', handleGameDeal);
+    socket.on('game:state', handleGameState);
+    socket.on('game:turn', handleGameTurn);
+    socket.on('game:blind-change', handleBlindChange);
+    socket.on('game:eliminate', handleEliminate);
+    socket.on('game:end', handleGameEnd);
+
+    // Cleanup subscriptions on unmount
+    return () => {
+      socket.off('game:start', handleGameStart);
+      socket.off('game:deal', handleGameDeal);
+      socket.off('game:state', handleGameState);
+      socket.off('game:turn', handleGameTurn);
+      socket.off('game:blind-change', handleBlindChange);
+      socket.off('game:eliminate', handleEliminate);
+      socket.off('game:end', handleGameEnd);
+    };
+  }, [currentPlayerId]);
+
+  return {
+    ...store,
+    sendAction,
+    consumePendingAction,
+  };
+}
