@@ -85,7 +85,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   hydrate: () => {
     const tokens = getStoredTokens();
     if (tokens) {
-      set({ tokens, isAuthenticated: true, isHydrated: true });
+      // Decode the access token to get player info
+      try {
+        const payload = JSON.parse(atob(tokens.accessToken.split('.')[1]));
+        const player: PublicPlayer = {
+          id: payload.playerId,
+          username: payload.username,
+          balance: 1000, // Will be updated on next API call
+          createdAt: new Date(),
+          lastLoginAt: new Date(),
+          isTestAccount: false,
+        };
+        set({ tokens, player, isAuthenticated: true, isHydrated: true });
+      } catch {
+        set({ tokens, isAuthenticated: true, isHydrated: true });
+      }
     } else {
       set({ isHydrated: true });
     }
