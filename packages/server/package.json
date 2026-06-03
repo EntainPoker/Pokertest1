@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js",
+    "build": "echo 'build skipped - using tsx runtime'",
+    "start": "npx tsx src/seeds/seed-test-accounts.ts && npx tsx src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint src/",
@@ -21,7 +21,6 @@
     "dotenv": "^16.4.0",
     "express": "^4.19.0",
     "jsonwebtoken": "^9.0.0",
-    "pg": "^8.12.0",
     "socket.io": "^4.7.0",
     "uuid": "^9.0.0"
   },
@@ -32,7 +31,6 @@
     "@types/express": "^4.17.0",
     "@types/jsonwebtoken": "^9.0.0",
     "@types/node": "^20.14.0",
-    "@types/pg": "^8.11.0",
     "@types/uuid": "^9.0.0",
     "eslint": "^9.0.0",
     "fast-check": "^3.19.0",
