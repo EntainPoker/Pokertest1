@@ -35,13 +35,21 @@ export function LobbyView() {
   useEffect(() => {
     socket.emit('lobby:subscribe');
 
-    socket.on('lobby:update', applyLobbyUpdate);
+    const handleLobbyUpdate = (payload: any) => {
+      applyLobbyUpdate(payload);
+      // If a game becomes full or in_progress, check if we should navigate
+      if (payload.status === 'full' || payload.status === 'in_progress') {
+        navigate(`/table/${payload.gameId}`);
+      }
+    };
+
+    socket.on('lobby:update', handleLobbyUpdate);
 
     return () => {
-      socket.off('lobby:update', applyLobbyUpdate);
+      socket.off('lobby:update', handleLobbyUpdate);
       socket.emit('lobby:unsubscribe');
     };
-  }, [socket, applyLobbyUpdate]);
+  }, [socket, applyLobbyUpdate, navigate]);
 
   // Auto-dismiss registration message after 3 seconds
   useEffect(() => {

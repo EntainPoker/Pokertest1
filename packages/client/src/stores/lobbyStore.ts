@@ -58,6 +58,9 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
       );
       set({ registering: false, registrationMessage: result.message });
 
+      // Refetch games to get accurate state from server
+      await get().fetchGames();
+
       return result;
     } catch (err: unknown) {
       const message = err && typeof err === 'object' && 'message' in err
@@ -89,19 +92,9 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
     }
   },
 
-  applyLobbyUpdate: (payload: LobbyUpdatePayload) => {
-    const { games } = get();
-    set({
-      games: games.map((g) =>
-        g.id === payload.gameId
-          ? {
-              ...g,
-              registeredPlayers: Array(payload.playerCount).fill(''),
-              status: payload.status,
-            }
-          : g,
-      ),
-    });
+  applyLobbyUpdate: (_payload: LobbyUpdatePayload) => {
+    // Refetch games from server to get accurate counts
+    get().fetchGames();
   },
 
   clearRegistrationMessage: () => {
