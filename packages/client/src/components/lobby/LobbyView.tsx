@@ -1,17 +1,14 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLobbyStore } from '../../stores/lobbyStore';
+import { useAuthStore } from '../../stores/authStore';
 import { useSocket } from '../../hooks/useSocket';
 import { GameInstanceCard } from './GameInstanceCard';
 import { EmptyLobbyMessage } from './EmptyLobbyMessage';
 
-/**
- * Main lobby page displaying available Spin & Go games.
- * Fetches games on mount and subscribes to real-time lobby:update events.
- * Satisfies Requirements 2.1–2.6, 3.1, 3.2, 13.1.
- */
 export function LobbyView() {
   const navigate = useNavigate();
+  const currentPlayerId = useAuthStore((s) => s.player?.id ?? '');
   const {
     games,
     loading,
@@ -20,6 +17,7 @@ export function LobbyView() {
     registrationMessage,
     fetchGames,
     registerForGame,
+    unregisterFromGame,
     applyLobbyUpdate,
     clearRegistrationMessage,
   } = useLobbyStore();
@@ -62,14 +60,20 @@ export function LobbyView() {
   const handleRegister = async (gameId: string) => {
     try {
       const result = await registerForGame(gameId);
-      // Find the game to check if it's now full
       const game = games.find(g => g.id === gameId);
       if (game && result.playerCount >= game.maxPlayers) {
-        // Game is full — navigate to the table
         setTimeout(() => navigate(`/table/${gameId}`), 1000);
       }
     } catch {
-      // Error is handled in the store and shown via registrationMessage
+      // Error handled in store
+    }
+  };
+
+  const handleUnregister = async (gameId: string) => {
+    try {
+      await unregisterFromGame(gameId);
+    } catch {
+      // Error handled in store
     }
   };
 
@@ -128,7 +132,9 @@ export function LobbyView() {
             <GameInstanceCard
               key={game.id}
               game={game}
+              currentPlayerId={currentPlayerId}
               onRegister={handleRegister}
+              onUnregister={handleUnregister}
               registering={registering}
             />
           ))}

@@ -72,23 +72,17 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
   },
 
   unregisterFromGame: async (gameId: string) => {
+    set({ registering: true, registrationMessage: null });
     try {
       await apiFetch(`/api/lobby/games/${gameId}/register`, { method: 'DELETE' });
-
-      const { games } = get();
-      set({
-        games: games.map((g) =>
-          g.id === gameId
-            ? { ...g, registeredPlayers: g.registeredPlayers.slice(0, -1), status: 'open' }
-            : g,
-        ),
-        registrationMessage: 'Successfully unregistered',
-      });
+      set({ registering: false, registrationMessage: 'Successfully unregistered' });
+      // Refetch to get accurate state
+      await get().fetchGames();
     } catch (err: unknown) {
       const message = err && typeof err === 'object' && 'message' in err
         ? (err as { message: string }).message
         : 'Failed to unregister';
-      set({ registrationMessage: message });
+      set({ registering: false, registrationMessage: message });
     }
   },
 
