@@ -58,7 +58,15 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
       );
       set({ registering: false, registrationMessage: result.message });
 
-      // Refetch games to get accurate state from server
+      // Update balance in auth store (deduct buy-in)
+      const authStore = (await import('./authStore')).useAuthStore;
+      const currentBalance = authStore.getState().player?.balance ?? 0;
+      const player = authStore.getState().player;
+      if (player) {
+        authStore.setState({ player: { ...player, balance: currentBalance - 1 } });
+      }
+
+      // Refetch games to get accurate state
       await get().fetchGames();
 
       return result;
@@ -76,6 +84,15 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
     try {
       await apiFetch(`/api/lobby/games/${gameId}/register`, { method: 'DELETE' });
       set({ registering: false, registrationMessage: 'Successfully unregistered' });
+
+      // Update balance in auth store (refund buy-in)
+      const authStore = (await import('./authStore')).useAuthStore;
+      const currentBalance = authStore.getState().player?.balance ?? 0;
+      const player = authStore.getState().player;
+      if (player) {
+        authStore.setState({ player: { ...player, balance: currentBalance + 1 } });
+      }
+
       // Refetch to get accurate state
       await get().fetchGames();
     } catch (err: unknown) {
