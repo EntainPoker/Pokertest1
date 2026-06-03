@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "Auto-commit on file edit",
+  "description": "Automatically stages and commits all file changes after the agent edits files, so the user only needs to run 'git push origin main' to deploy.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.js",
+      "**/*.json"
+    ]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "git add -A && git commit -m \"Update from Kiro\" --allow-empty"
+  }
+}
