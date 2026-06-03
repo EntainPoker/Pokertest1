@@ -152,7 +152,7 @@ export function RegisterForm({
           <button
             type="submit"
             disabled={!isFormValid || isLoading}
-            className="w-full py-3 px-4 bg-poker-gold text-gray-900 font-semibold rounded-md hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-poker-gold focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[44px]"
+            className="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[44px]"
           >
             {isLoading ? 'Creating account...' : 'Create Account'}
           </button>
