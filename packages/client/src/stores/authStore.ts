@@ -91,12 +91,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const player: PublicPlayer = {
           id: payload.playerId,
           username: payload.username,
-          balance: 1000, // Will be updated on next API call
+          balance: 1000, // Temporary — will be updated by fetchProfile below
           createdAt: new Date(),
           lastLoginAt: new Date(),
           isTestAccount: false,
         };
         set({ tokens, player, isAuthenticated: true, isHydrated: true });
+
+        // Fetch real balance from server
+        apiFetch<{ player: PublicPlayer }>('/api/auth/me')
+          .then((data) => {
+            set({ player: data.player });
+          })
+          .catch(() => {
+            // If fetch fails (e.g. token expired), clear auth state
+            clearStoredTokens();
+            set({ player: null, tokens: null, isAuthenticated: false });
+          });
       } catch {
         set({ tokens, isAuthenticated: true, isHydrated: true });
       }

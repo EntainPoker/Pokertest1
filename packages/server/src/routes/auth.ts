@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
 import * as authService from '../services/authService.js';
+import { authMiddleware, AuthenticatedRequest } from '../middleware/auth.js';
+import { query } from '../config/database.js';
 import type { RegisterRequest, LoginRequest, RefreshTokenRequest } from '@spin-and-go/shared';
 
 const router = Router();
@@ -116,6 +118,40 @@ router.post('/refresh', async (req: Request, res: Response) => {
       message,
       statusCode: 401,
     });
+  }
+});
+
+/**
+ * GET /api/auth/me
+ * Return the current authenticated player's profile (including real balance)
+ */
+router.get('/me', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const playerId = req.player?.playerId;
+    if (!playerId) {
+      res.status(401).json({ error: 'Unauthorized', message: 'No player info', statusCode: 401 });
+      return;
+    }
+
+    const result = query('SELECT id, username, balance, created_at, last_login_at, is_test_account FROM players WHERE id = ?', [playerId]);
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'Not found', message: 'Player not found', statusCode: 404 });
+      return;
+    }
+
+    const row = result.rows[0];
+    res.status(200).json({
+      player: {
+        id: row.id,
+        username: row.username,
+        balance: row.balance,
+        createdAt: row.created_at,
+        lastLoginAt: row.last_login_at,
+        isTestAccount: Boolean(row.is_test_account),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error', message: 'Failed to fetch profile', statusCode: 500 });
   }
 });
 

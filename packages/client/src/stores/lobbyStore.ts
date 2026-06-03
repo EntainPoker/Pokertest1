@@ -59,10 +59,19 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
       );
       set({ registering: false, registrationMessage: result.message });
 
-      // Update balance in auth store (deduct buy-in)
-      const player = useAuthStore.getState().player;
-      if (player) {
-        useAuthStore.setState({ player: { ...player, balance: player.balance - 1 } });
+      // Fetch real balance from server after registration
+      try {
+        const profileData = await apiFetch<{ player: { balance: number } }>('/api/auth/me');
+        const player = useAuthStore.getState().player;
+        if (player) {
+          useAuthStore.setState({ player: { ...player, balance: profileData.player.balance } });
+        }
+      } catch {
+        // Fallback: optimistic deduct
+        const player = useAuthStore.getState().player;
+        if (player) {
+          useAuthStore.setState({ player: { ...player, balance: player.balance - 1 } });
+        }
       }
 
       // Refetch games to get accurate state
@@ -84,10 +93,19 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
       await apiFetch(`/api/lobby/games/${gameId}/register`, { method: 'DELETE' });
       set({ registering: false, registrationMessage: 'Successfully unregistered' });
 
-      // Update balance in auth store (refund buy-in)
-      const player = useAuthStore.getState().player;
-      if (player) {
-        useAuthStore.setState({ player: { ...player, balance: player.balance + 1 } });
+      // Fetch real balance from server after unregistration
+      try {
+        const profileData = await apiFetch<{ player: { balance: number } }>('/api/auth/me');
+        const player = useAuthStore.getState().player;
+        if (player) {
+          useAuthStore.setState({ player: { ...player, balance: profileData.player.balance } });
+        }
+      } catch {
+        // Fallback: optimistic refund
+        const player = useAuthStore.getState().player;
+        if (player) {
+          useAuthStore.setState({ player: { ...player, balance: player.balance + 1 } });
+        }
       }
 
       // Refetch to get accurate state
