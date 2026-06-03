@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "cd ../client && npm run build",
-    "start": "npx tsx src/seeds/seed-test-accounts.ts && npx tsx src/index.ts",
+    "start": "npx tsx src/start.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint src/",
