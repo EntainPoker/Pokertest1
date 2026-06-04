@@ -57,7 +57,7 @@ export function GamePage() {
   useEffect(() => {
     const handleReconnect = () => {
       if (gameId) {
-        socket.emit('game:resync' as any, { gameId });
+        socket.emit('game:join', { gameId, playerId: currentPlayerId });
       }
     };
 
@@ -65,7 +65,7 @@ export function GamePage() {
     return () => {
       socket.off('connect', handleReconnect);
     };
-  }, [socket, gameId]);
+  }, [socket, gameId, currentPlayerId]);
 
   // Join the game room on mount
   useEffect(() => {
