@@ -702,6 +702,16 @@ function completeHand(gameInstanceId: string): void {
       winnerTp.finishPosition = 1;
     }
 
+    // Credit the winner's account balance with the prize pool
+    try {
+      query(
+        'UPDATE players SET balance = balance + ? WHERE id = ?',
+        [tournament.prizePool, completionResult.winnerId]
+      );
+    } catch (err) {
+      console.error('[GameLoop] Failed to credit winner balance:', err);
+    }
+
     persistState(gameInstanceId, gameState);
 
     // Emit tournament end
