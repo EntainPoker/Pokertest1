@@ -123,7 +123,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
           </div>
 
           {/* Bottom player (current player — always me) */}
-          <div className="flex justify-center w-full">
+          <div className="flex justify-center w-full pb-40 sm:pb-48">
             {getPlayer(myPositionIndex) && (
               <PlayerSeat
                 player={getPlayer(myPositionIndex)!}
