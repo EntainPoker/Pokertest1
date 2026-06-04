@@ -117,7 +117,6 @@ io.on('connection', (socket) => {
         socket.emit('game:start', existingState);
       }
     }
-  });    }
   });
 
   // Handle game:resync — re-emit current state if available
