@@ -45,6 +45,16 @@ const gameLoops = new Map<string, GameLoopInstance>();
 // ============================================================
 
 /**
+ * Returns a player's hole cards for a given game instance.
+ * Used when a player reconnects/joins to send them their cards.
+ */
+export function getPlayerHoleCards(gameInstanceId: string, playerId: string): Card[] | null {
+  const instance = gameLoops.get(gameInstanceId);
+  if (!instance) return null;
+  return instance.playerHoleCards.get(playerId) ?? null;
+}
+
+/**
  * Starts the game loop for a tournament.
  * Called after tournament creation when all players have joined.
  */
