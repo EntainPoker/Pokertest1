@@ -7,6 +7,7 @@ import { PokerTable } from '../components/table/PokerTable';
 import { TournamentLobby } from '../components/tournament/TournamentLobby';
 import { BlindTimer } from '../components/table/BlindTimer';
 import { useGameStore } from '../stores/gameStore';
+import { apiFetch } from '../services/api';
 
 /**
  * Game page — wraps PokerTable with game state management (useGameState hook),
