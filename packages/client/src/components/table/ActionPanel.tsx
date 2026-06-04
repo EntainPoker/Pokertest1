@@ -281,7 +281,7 @@ export function ActionPanel({
             onClick={handleRaise}
             className="min-w-[44px] min-h-[44px] flex-1 px-3 py-3 rounded-xl bg-gradient-to-b from-poker-gold to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-gray-900 font-bold text-sm transition-all shadow-md"
           >
-            Raise ${betAmount}
+            {`Raise $${betAmount}`}
           </button>
         )}
 
