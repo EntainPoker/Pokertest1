@@ -256,12 +256,14 @@ export function GamePage() {
 
       {/* Poker table */}
       <main className="flex-1 flex items-center justify-center p-4">
-        <PokerTable
-          handState={displayHandState}
-          currentPlayerId={currentPlayerId}
-          gameId={gameId}
-          turnTimeRemaining={turnTimeRemaining}
-        />
+        <ErrorBoundary>
+          <PokerTable
+            handState={displayHandState}
+            currentPlayerId={currentPlayerId}
+            gameId={gameId}
+            turnTimeRemaining={turnTimeRemaining}
+          />
+        </ErrorBoundary>
       </main>
 
       {/* Tournament lobby overlay */}
