@@ -18,12 +18,9 @@ interface PokerTableProps {
 }
 
 /**
- * Main poker table layout — GGPoker-style mobile-first design.
- * Three vertical zones: table (top), player cards (middle), actions (bottom).
- * Players are rendered by their raw array index:
- *   - 2 players: player[0] at top, player[1] at bottom
- *   - 3 players: player[0] at top, player[1] bottom-left, player[2] bottom-right
- * Current player's cards show face-up based on playerId match.
+ * Main poker table layout — mobile-first, fits 100dvh with no scroll.
+ * Single green table area: opponents at top, pot+community in center, my player at bottom.
+ * Action panel sits below the green table as a compact bar.
  *
  * Satisfies Requirements 6.1, 6.2, 6.3, 6.5, 6.6, 6.7, 6.8, 13.1.
  */
@@ -45,7 +42,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   // Safety: if players array is empty or invalid, show loading state
   if (!players || players.length === 0) {
     return (
-      <div className="w-full h-screen flex items-center justify-center bg-gray-900">
+      <div className="w-full h-full flex items-center justify-center bg-gray-900">
         <p className="text-gray-400">Loading table...</p>
       </div>
     );
@@ -69,7 +66,6 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   };
 
   // Simple index-based layout: separate top opponents from bottom (current) player
-  // Find which index is the current player for bottom positioning
   const myIndex = players.findIndex(p => p.playerId === currentPlayerId);
 
   // Top row: all players except the current player
@@ -81,7 +77,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   const bottomIndex = myIndex >= 0 ? myIndex : players.length - 1;
 
   return (
-    <div className="w-full h-full bg-gray-950 flex flex-col overflow-hidden">
+    <div className="w-full h-full flex flex-col overflow-hidden">
       {/* Last Hand button */}
       {gameId && (
         <button
@@ -98,10 +94,10 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
         <LastHandSummary gameId={gameId} onClose={() => setShowLastHand(false)} />
       )}
 
-      {/* GREEN TABLE — max 55% of height */}
-      <div className="h-[45%] sm:h-[55%] shrink-0 flex flex-col items-center justify-between px-2 pt-6 pb-2 bg-gradient-to-b from-green-900 via-emerald-900 to-green-950 rounded-b-2xl relative">
+      {/* GREEN TABLE — fills all available space */}
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-between px-2 pt-4 pb-2 bg-gradient-to-b from-green-900 via-emerald-900 to-green-950 relative">
         {/* Opponents row */}
-        <div className={`relative z-10 flex ${topIndices.length === 1 ? 'justify-center' : 'justify-center gap-3 sm:gap-8'} w-full`}>
+        <div className={`relative z-10 flex ${topIndices.length === 1 ? 'justify-center' : 'justify-center gap-3'} w-full`}>
           {topIndices.map((idx) => {
             const p = players[idx];
             if (!p) return null;
@@ -124,40 +120,38 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
           <CommunityCards cards={communityCards} />
         </div>
 
-        <div className="h-1" />
-      </div>
-
-      {/* MY CARDS — guaranteed visible, horizontal layout */}
-      <div className="shrink-0 flex items-center justify-center gap-2 px-3 py-2 bg-gray-900 border-t border-gray-800">
-        {players[bottomIndex] && (
-          <div className="flex items-center gap-2">
-            <div className="flex flex-col items-center">
-              {dealerPosition === bottomIndex && (
-                <span className="w-4 h-4 rounded-full bg-white text-gray-900 text-[8px] font-black flex items-center justify-center shadow-sm border border-gray-300 mb-0.5">D</span>
-              )}
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-md bg-gradient-to-br from-blue-500 to-blue-700 ${currentPlayerIndex === bottomIndex ? 'ring-2 ring-poker-gold' : 'ring-1 ring-gray-600/50'}`}>
-                {players[bottomIndex].username.charAt(0).toUpperCase()}
+        {/* MY PLAYER — at the bottom of the green table area */}
+        <div className="relative z-10 flex items-center justify-center gap-2 mt-auto pb-1">
+          {players[bottomIndex] && (
+            <div className="flex items-center gap-2">
+              <div className="flex flex-col items-center">
+                {dealerPosition === bottomIndex && (
+                  <span className="w-4 h-4 rounded-full bg-white text-gray-900 text-[8px] font-black flex items-center justify-center shadow-sm border border-gray-300 mb-0.5">D</span>
+                )}
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-md bg-gradient-to-br from-blue-500 to-blue-700 ${currentPlayerIndex === bottomIndex ? 'ring-2 ring-poker-gold' : 'ring-1 ring-gray-600/50'}`}>
+                  {players[bottomIndex].username.charAt(0).toUpperCase()}
+                </div>
+                <span className="text-[8px] text-gray-300">{players[bottomIndex].username}</span>
+                <span className="text-[9px] text-poker-gold font-bold">${players[bottomIndex].chipCount}</span>
               </div>
-              <span className="text-[8px] text-gray-400">{players[bottomIndex].username}</span>
-              <span className="text-[9px] text-poker-gold font-bold">${players[bottomIndex].chipCount}</span>
+              <div className="flex gap-0.5">
+                {getHoleCards(bottomIndex).length > 0
+                  ? getHoleCards(bottomIndex).map((card, i) => (
+                      <Card key={i} rank={card.rank} suit={card.suit} />
+                    ))
+                  : !players[bottomIndex].status?.includes('folded') && (
+                      <>
+                        <Card faceDown />
+                        <Card faceDown />
+                      </>
+                    )}
+              </div>
             </div>
-            <div className="flex gap-0.5">
-              {getHoleCards(bottomIndex).length > 0
-                ? getHoleCards(bottomIndex).map((card, i) => (
-                    <Card key={i} rank={card.rank} suit={card.suit} />
-                  ))
-                : !players[bottomIndex].status?.includes('folded') && (
-                    <>
-                      <Card faceDown />
-                      <Card faceDown />
-                    </>
-                  )}
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* ACTION PANEL — takes remaining space at bottom */}
+      {/* ACTION PANEL — compact bar at the bottom */}
       <div className="shrink-0 w-full">
         <ActionPanel
           handState={handState}
