@@ -41,6 +41,17 @@ app.use('/api/lobby', lobbyRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/history', historyRoutes);
 
+// Game state endpoint — returns active game state for a given game instance
+app.get('/api/game/:gameId/state', (_req, res) => {
+  const { gameId } = _req.params;
+  const state = activeGameStates.get(gameId);
+  if (state) {
+    res.json({ state });
+  } else {
+    res.status(404).json({ state: null, message: 'No active game state' });
+  }
+});
+
 // Serve the built client files in production
 const clientDist = path.join(__dirname, '..', '..', 'client', 'dist');
 app.use(express.static(clientDist));
