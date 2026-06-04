@@ -261,7 +261,7 @@ export function ActionPanel({
             onClick={handleCall}
             className="min-w-[44px] min-h-[44px] flex-1 px-3 py-3 rounded-xl bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-bold text-sm transition-all shadow-md"
           >
-            Call ${callAmount}
+            {`Call $${callAmount}`}
           </button>
         )}
 
