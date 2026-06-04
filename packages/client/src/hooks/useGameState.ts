@@ -143,29 +143,12 @@ export function useGameState() {
 
       handState.currentPlayerIndex = safeCurrentPlayerIndex;
       handState.lastAction = null; // Never store action objects
-      // lastAction is a PlayerAction object, turnStartedAt can be a Date — both unsafe for JSX.
-      const sanitizedHandState = {
-        ...handState,
-        currentPlayerIndex: safeCurrentPlayerIndex,
-        lastAction: null, // Never render action objects
-        turnStartedAt: typeof handState.turnStartedAt === 'string'
-          ? handState.turnStartedAt
-          : String(handState.turnStartedAt ?? ''),
-        pot: typeof handState.pot === 'number' ? handState.pot : 0,
-        sidePots: Array.isArray(handState.sidePots)
-          ? handState.sidePots.map(sp => ({
-              amount: typeof sp.amount === 'number' ? sp.amount : 0,
-              eligiblePlayerIds: Array.isArray(sp.eligiblePlayerIds) ? sp.eligiblePlayerIds : [],
-            }))
-          : [],
-      };
 
       // Preserve existing hole cards (game:state sends sanitized state without cards)
       const existingHoleCards = useGameStore.getState().myHoleCards;
 
       // Determine if it's our turn
-      const currentTurnPlayer =
-        sanitizedHandState.players[sanitizedHandState.currentPlayerIndex];
+      const currentTurnPlayer = handState.players[handState.currentPlayerIndex];
       const isMyTurn = currentTurnPlayer?.playerId === currentPlayerId;
 
       useGameStore.setState({
