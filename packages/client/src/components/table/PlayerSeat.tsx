@@ -43,7 +43,7 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
     >
       {/* Dealer button indicator */}
       {isDealer && (
-        <span className="absolute -top-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white text-gray-900 text-[9px] sm:text-[10px] font-black flex items-center justify-center shadow-md border-2 border-gray-300 z-10">
+        <span className="absolute -top-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-white text-gray-900 text-[7px] sm:text-[9px] font-black flex items-center justify-center shadow-md border border-gray-300 z-10">
           D
         </span>
       )}
