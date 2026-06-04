@@ -46,11 +46,30 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/history', historyRoutes);
 
 // Game state endpoint — returns active game state for a given game instance
+// Accepts ?playerId= query param to include that player's hole cards
 app.get('/api/game/:gameId/state', (_req, res) => {
   const { gameId } = _req.params;
+  const playerId = _req.query.playerId as string | undefined;
   const state = activeGameStates.get(gameId);
   if (state) {
-    res.json({ state });
+    // Include player's hole cards if requested
+    let personalizedState = state;
+    if (playerId) {
+      const holeCards = getPlayerHoleCards(gameId, playerId);
+      if (holeCards && holeCards.length > 0) {
+        personalizedState = {
+          ...state,
+          handState: {
+            ...state.handState,
+            players: state.handState.players.map(p => ({
+              ...p,
+              holeCards: p.playerId === playerId ? holeCards : [],
+            })),
+          },
+        };
+      }
+    }
+    res.json({ state: personalizedState });
   } else {
     res.status(404).json({ state: null, message: 'No active game state' });
   }
@@ -68,11 +87,6 @@ app.get('*', (_req, res) => {
 const PORT = process.env.PORT || 4000;
 
 // Socket.IO connection handling
-import { playerConnections } from './services/tournamentService.js';
-import { activeGameStates } from './services/gameStateStore.js';
-import { handlePlayerAction, getPlayerHoleCards } from './services/gameEngine/gameLoop.js';
-import type { GameState, PlayerAction } from '@spin-and-go/shared';
-
 io.on('connection', (socket) => {
   let currentPlayerId: string | null = null;
   let currentGameId: string | null = null;
