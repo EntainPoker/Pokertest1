@@ -81,12 +81,12 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   const bottomIndex = myIndex >= 0 ? myIndex : players.length - 1;
 
   return (
-    <div className="w-full h-screen max-h-screen bg-gray-950 flex flex-col relative overflow-hidden">
+    <div className="w-full h-screen max-h-[100dvh] bg-gray-950 flex flex-col overflow-hidden">
       {/* Last Hand button — fixed position top-left */}
       {gameId && (
         <button
           onClick={() => setShowLastHand(true)}
-          className="absolute top-3 left-3 z-20 min-w-[44px] min-h-[44px] px-3 py-2 rounded-lg bg-gray-800/90 border border-gray-700/50 text-gray-300 text-xs font-medium hover:bg-gray-700 hover:text-white transition-all shadow-md"
+          className="absolute top-2 left-2 z-20 min-w-[44px] min-h-[44px] px-2 py-1.5 rounded-lg bg-gray-800/90 border border-gray-700/50 text-gray-300 text-[10px] font-medium hover:bg-gray-700 hover:text-white transition-all shadow-md"
           aria-label="View last hand history"
         >
           Last Hand
@@ -98,13 +98,10 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
         <LastHandSummary gameId={gameId} onClose={() => setShowLastHand(false)} />
       )}
 
-      {/* TOP ZONE — Green felt table area */}
-      <div className="flex-1 min-h-0 flex flex-col items-center justify-between px-3 pt-10 pb-3 bg-gradient-to-b from-green-900 via-emerald-900 to-green-950 rounded-b-3xl relative">
-        {/* Subtle inner glow */}
-        <div className="absolute inset-0 rounded-b-3xl bg-gradient-to-b from-green-800/20 via-transparent to-black/20 pointer-events-none" />
-
+      {/* TOP ZONE — Green felt table area (takes remaining space) */}
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-between px-2 pt-8 pb-2 bg-gradient-to-b from-green-900 via-emerald-900 to-green-950 rounded-b-2xl relative">
         {/* Opponents row */}
-        <div className={`relative z-10 flex ${topIndices.length === 1 ? 'justify-center' : 'justify-center gap-4 sm:gap-8'} w-full`}>
+        <div className={`relative z-10 flex ${topIndices.length === 1 ? 'justify-center' : 'justify-center gap-3 sm:gap-8'} w-full`}>
           {topIndices.map((idx) => {
             const p = players[idx];
             if (!p) return null;
@@ -122,32 +119,32 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
         </div>
 
         {/* Center area: pot + community cards */}
-        <div className="relative z-10 flex flex-col items-center gap-2 sm:gap-3">
+        <div className="relative z-10 flex flex-col items-center gap-1.5">
           <PotDisplay amount={safePot} sidePots={safeSidePots} />
           <CommunityCards cards={communityCards} />
         </div>
 
-        {/* Spacer to push content up */}
-        <div className="h-2" />
+        {/* Spacer */}
+        <div className="h-1" />
       </div>
 
-      {/* MIDDLE ZONE — Current player's cards and info, HORIZONTAL layout */}
-      <div className="flex items-center justify-center gap-3 px-4 py-2 bg-gray-900">
+      {/* MIDDLE ZONE — Current player's cards and info (fixed height, never overlapped) */}
+      <div className="shrink-0 flex items-center justify-center gap-3 px-3 py-1.5 bg-gray-900 border-t border-gray-800">
         {players[bottomIndex] && (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {/* Avatar + name + chips */}
             <div className="flex flex-col items-center gap-0.5">
               {dealerPosition === bottomIndex && (
-                <span className="w-5 h-5 rounded-full bg-white text-gray-900 text-[9px] font-black flex items-center justify-center shadow-md border-2 border-gray-300">D</span>
+                <span className="w-4 h-4 rounded-full bg-white text-gray-900 text-[8px] font-black flex items-center justify-center shadow-sm border border-gray-300">D</span>
               )}
-              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-white font-bold text-base shadow-md bg-gradient-to-br from-blue-500 to-blue-700 ${currentPlayerIndex === bottomIndex ? 'ring-[3px] ring-poker-gold animate-pulse' : 'ring-2 ring-gray-600/50'}`}>
+              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md bg-gradient-to-br from-blue-500 to-blue-700 ${currentPlayerIndex === bottomIndex ? 'ring-2 ring-poker-gold' : 'ring-1 ring-gray-600/50'}`}>
                 {players[bottomIndex].username.charAt(0).toUpperCase()}
               </div>
-              <span className="text-[10px] text-gray-300 font-medium">{players[bottomIndex].username}</span>
-              <span className="text-[10px] text-poker-gold font-bold">${players[bottomIndex].chipCount}</span>
+              <span className="text-[9px] text-gray-400 font-medium">{players[bottomIndex].username}</span>
+              <span className="text-[9px] text-poker-gold font-bold">${players[bottomIndex].chipCount}</span>
             </div>
             {/* Cards — displayed horizontally next to avatar */}
-            <div className="flex gap-1">
+            <div className="flex gap-0.5">
               {getHoleCards(bottomIndex).length > 0
                 ? getHoleCards(bottomIndex).map((card, i) => (
                     <Card key={i} rank={card.rank} suit={card.suit} />
@@ -163,8 +160,8 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
         )}
       </div>
 
-      {/* Action Panel — in normal flow, NOT fixed/absolute */}
-      <div className="w-full">
+      {/* BOTTOM ZONE — Action Panel (shrink-0 = fixed height, never grows) */}
+      <div className="shrink-0 w-full">
         <ActionPanel
           handState={handState}
           currentPlayerId={currentPlayerId}
