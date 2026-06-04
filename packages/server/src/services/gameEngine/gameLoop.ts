@@ -1,6 +1,7 @@
 import { io } from '../../index.js';
 import { activeGameStates } from '../gameStateStore.js';
 import { playerConnections } from '../tournamentService.js';
+import { query } from '../../config/database.js';
 import { Deck } from './deck.js';
 import { BettingRound, RoundProgression } from './bettingRound.js';
 import { evaluateHand, compareHands, determineWinners } from './handEvaluator.js';
