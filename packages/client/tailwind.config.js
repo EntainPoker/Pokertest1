@@ -12,10 +12,10 @@ export default {
     extend: {
       colors: {
         poker: {
-          green: '#1a5c2e',
-          felt: '#2d8a4e',
-          gold: '#d4af37',
-          dark: '#0f1419',
+          green: '#2e7d32',
+          felt: '#1b5e20',
+          gold: '#ffd700',
+          dark: '#1a1a2e',
         },
       },
     },

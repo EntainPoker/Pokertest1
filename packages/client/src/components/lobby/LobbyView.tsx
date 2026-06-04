@@ -9,6 +9,7 @@ import { EmptyLobbyMessage } from './EmptyLobbyMessage';
 export function LobbyView() {
   const navigate = useNavigate();
   const currentPlayerId = useAuthStore((s) => s.player?.id ?? '');
+  const balance = useAuthStore((s) => s.player?.balance ?? 0);
   const {
     games,
     loading,
@@ -81,22 +82,46 @@ export function LobbyView() {
   };
 
   return (
-    <div className="min-h-screen bg-poker-dark px-4 py-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950 px-4 py-6 sm:px-6 lg:px-8">
       {/* Header */}
-      <header className="max-w-7xl mx-auto mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-poker-gold">
-          Spin &amp; Go Lobby
-        </h1>
-        <p className="text-gray-400 mt-1 text-sm sm:text-base">
-          Choose a game and register to play. Games start when 3 players join.
-        </p>
+      <header className="max-w-7xl mx-auto mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-poker-gold to-yellow-400 bg-clip-text text-transparent">
+              Spin &amp; Go
+            </h1>
+            <p className="text-gray-400 mt-1 text-sm sm:text-base">
+              Choose a game and register to play
+            </p>
+          </div>
+          <div className="flex items-center gap-2 bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-2">
+            <span className="text-xs text-gray-400 uppercase tracking-wide">Balance</span>
+            <span className="text-lg font-bold text-poker-gold">${balance.toLocaleString()}</span>
+          </div>
+        </div>
+
+        {/* Navigation tabs */}
+        <div className="mt-6 flex gap-1 border-b border-gray-700/50">
+          <button
+            type="button"
+            className="min-h-[44px] px-5 py-2.5 text-sm font-semibold text-poker-gold border-b-2 border-poker-gold bg-transparent"
+          >
+            Game Lobby
+          </button>
+          <button
+            type="button"
+            className="min-h-[44px] px-5 py-2.5 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-300 transition-colors"
+          >
+            Top Prizes
+          </button>
+        </div>
       </header>
 
       {/* Registration feedback toast */}
       {registrationMessage && (
         <div
           role="alert"
-          className="max-w-7xl mx-auto mb-4 px-4 py-3 rounded-md bg-gray-800 border border-gray-600 text-gray-200 text-sm"
+          className="max-w-7xl mx-auto mb-4 px-4 py-3 rounded-xl bg-gray-800/80 border border-poker-gold/30 text-gray-200 text-sm backdrop-blur-sm"
         >
           {registrationMessage}
         </div>
@@ -105,7 +130,7 @@ export function LobbyView() {
       {/* Loading state */}
       {loading && (
         <div className="flex justify-center py-16">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-poker-gold border-t-transparent" role="status">
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-poker-gold border-t-transparent" role="status">
             <span className="sr-only">Loading games…</span>
           </div>
         </div>
@@ -118,7 +143,7 @@ export function LobbyView() {
           <button
             type="button"
             onClick={fetchGames}
-            className="min-h-[44px] min-w-[44px] px-4 py-2 rounded-md bg-poker-gold text-poker-dark font-semibold hover:bg-yellow-500 transition-colors"
+            className="min-h-[44px] min-w-[44px] px-6 py-2.5 rounded-xl bg-gradient-to-r from-poker-gold to-yellow-500 text-gray-900 font-bold hover:from-yellow-400 hover:to-yellow-500 transition-all shadow-lg shadow-poker-gold/20"
           >
             Retry
           </button>
@@ -130,7 +155,7 @@ export function LobbyView() {
 
       {/* Game grid — responsive: 1 col mobile, 2 cols tablet, 3 cols desktop */}
       {!loading && !error && games.length > 0 && (
-        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {games.map((game) => (
             <GameInstanceCard
               key={game.id}
