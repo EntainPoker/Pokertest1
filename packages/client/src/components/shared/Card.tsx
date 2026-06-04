@@ -16,24 +16,41 @@ const SUIT_SYMBOLS: Record<CardType['suit'], string> = {
 
 /** Suit color mapping: red for hearts/diamonds, dark for clubs/spades */
 function getSuitColor(suit: CardType['suit']): string {
-  return suit === 'hearts' || suit === 'diamonds' ? 'text-red-500' : 'text-gray-900';
+  return suit === 'hearts' || suit === 'diamonds' ? 'text-red-600' : 'text-gray-900';
 }
 
 /**
  * Card component displaying a playing card with rank and suit.
- * Shows a card back pattern when faceDown is true.
- * Responsive sizing with min 44x44px touch target.
+ * Shows a premium card back pattern when faceDown is true.
+ * Responsive sizing with proper 2:3 ratio and min 44x44px touch target.
  * Satisfies Requirements 6.5, 13.2.
  */
 export function Card({ rank, suit, faceDown = false }: CardProps) {
   if (faceDown || !rank || !suit) {
     return (
       <div
-        className="w-10 h-14 sm:w-12 sm:h-[4.25rem] md:w-14 md:h-[4.75rem] min-w-[44px] min-h-[44px] rounded-md bg-gradient-to-br from-blue-900 to-blue-700 border border-blue-500 shadow-md flex items-center justify-center"
+        className="w-11 h-16 sm:w-[52px] sm:h-[78px] md:w-14 md:h-[84px] min-w-[44px] min-h-[44px] rounded-lg bg-gradient-to-br from-gray-800 via-gray-900 to-gray-950 border border-gray-600/50 shadow-lg flex items-center justify-center overflow-hidden"
         aria-label="Face-down card"
         role="img"
       >
-        <div className="w-6 h-8 sm:w-7 sm:h-10 rounded-sm border border-blue-400 bg-blue-800 opacity-80" />
+        {/* Diamond pattern design */}
+        <div className="w-full h-full relative flex items-center justify-center">
+          <div className="absolute inset-1 rounded-md border border-poker-gold/30 bg-gradient-to-br from-gray-800/50 to-gray-900/50" />
+          <div className="relative grid grid-cols-3 grid-rows-4 gap-0.5 p-2 opacity-40">
+            <span className="text-poker-gold text-[6px]">◆</span>
+            <span className="text-poker-gold text-[6px]">◆</span>
+            <span className="text-poker-gold text-[6px]">◆</span>
+            <span className="text-poker-gold text-[6px]">◆</span>
+            <span className="text-poker-gold text-[6px]">◆</span>
+            <span className="text-poker-gold text-[6px]">◆</span>
+            <span className="text-poker-gold text-[6px]">◆</span>
+            <span className="text-poker-gold text-[6px]">◆</span>
+            <span className="text-poker-gold text-[6px]">◆</span>
+            <span className="text-poker-gold text-[6px]">◆</span>
+            <span className="text-poker-gold text-[6px]">◆</span>
+            <span className="text-poker-gold text-[6px]">◆</span>
+          </div>
+        </div>
       </div>
     );
   }
@@ -43,16 +60,19 @@ export function Card({ rank, suit, faceDown = false }: CardProps) {
 
   return (
     <div
-      className={`w-10 h-14 sm:w-12 sm:h-[4.25rem] md:w-14 md:h-[4.75rem] min-w-[44px] min-h-[44px] rounded-md bg-white border border-gray-300 shadow-md flex flex-col items-center justify-center p-0.5 ${colorClass}`}
+      className={`relative w-11 h-16 sm:w-[52px] sm:h-[78px] md:w-14 md:h-[84px] min-w-[44px] min-h-[44px] rounded-lg bg-white border border-gray-200 shadow-lg flex flex-col items-start justify-start p-1 sm:p-1.5 ${colorClass}`}
       aria-label={`${rank} of ${suit}`}
       role="img"
     >
-      <span className="text-xs sm:text-sm md:text-base font-bold leading-none">
-        {rank}
-      </span>
-      <span className="text-sm sm:text-lg md:text-xl leading-none">
-        {suitSymbol}
-      </span>
+      {/* Top-left rank + suit */}
+      <div className="flex flex-col items-center leading-none">
+        <span className="text-xs sm:text-sm md:text-base font-bold">{rank}</span>
+        <span className="text-[10px] sm:text-xs">{suitSymbol}</span>
+      </div>
+      {/* Center suit symbol */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-lg sm:text-2xl md:text-3xl opacity-90">{suitSymbol}</span>
+      </div>
     </div>
   );
 }
