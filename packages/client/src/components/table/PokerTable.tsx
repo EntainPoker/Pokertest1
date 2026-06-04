@@ -131,7 +131,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
       </div>
 
       {/* MIDDLE ZONE — Current player's cards and info */}
-      <div className="flex items-center justify-center gap-4 px-4 py-3 bg-gray-900 pb-36 sm:pb-44">
+      <div className="flex items-center justify-center gap-4 px-4 py-3 bg-gray-900 pb-52 sm:pb-56">
         {players[bottomIndex] && (
           <PlayerSeat
             player={players[bottomIndex]}
