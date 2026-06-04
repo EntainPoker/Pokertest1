@@ -271,7 +271,7 @@ export function ActionPanel({
             onClick={handleBet}
             className="min-w-[44px] min-h-[44px] flex-1 px-3 py-3 rounded-xl bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold text-sm transition-all shadow-md"
           >
-            Bet ${betAmount}
+            {`Bet $${betAmount}`}
           </button>
         )}
 
