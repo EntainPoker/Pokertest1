@@ -87,6 +87,32 @@ export function GamePage() {
     }
   }, [socket, gameId, currentPlayerId]);
 
+  // REST fallback — poll for game state if WebSocket doesn't deliver within 3 seconds
+  useEffect(() => {
+    if (!gameId || handState) return;
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const data = await apiFetch<{ state: any }>(`/api/game/${gameId}/state`);
+        if (data.state && !useGameStore.getState().handState) {
+          const { handState: hs, tournament: t } = data.state;
+          useGameStore.setState({
+            handState: hs,
+            tournament: t,
+            gameStatus: 'playing',
+            myHoleCards: hs.players.find((p: any) => p.playerId === currentPlayerId)?.holeCards ?? [],
+            isMyTurn: hs.players[hs.currentPlayerIndex]?.playerId === currentPlayerId,
+            turnTimeRemaining: hs.turnTimeoutSeconds,
+          });
+        }
+      } catch {
+        // Game state not ready yet, keep polling
+      }
+    }, 2000);
+
+    return () => clearInterval(pollInterval);
+  }, [gameId, handState, currentPlayerId]);
+
   const handleBackToLobby = useCallback(() => {
     useGameStore.getState().reset();
     navigate('/lobby');
