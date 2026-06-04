@@ -35,9 +35,12 @@ export function LobbyView() {
 
     const handleLobbyUpdate = (payload: any) => {
       applyLobbyUpdate(payload);
-      // If a game becomes full or in_progress, check if we should navigate
+      // If a game becomes full or in_progress, navigate only if the current player is registered
       if (payload.status === 'full' || payload.status === 'in_progress') {
-        navigate(`/table/${payload.gameId}`);
+        const game = games.find(g => g.id === payload.gameId);
+        if (game && game.registeredPlayers.includes(currentPlayerId)) {
+          navigate(`/table/${payload.gameId}`);
+        }
       }
     };
 
@@ -47,7 +50,7 @@ export function LobbyView() {
       socket.off('lobby:update', handleLobbyUpdate);
       socket.emit('lobby:unsubscribe');
     };
-  }, [socket, applyLobbyUpdate, navigate]);
+  }, [socket, applyLobbyUpdate, navigate, games, currentPlayerId]);
 
   // Auto-dismiss registration message after 3 seconds
   useEffect(() => {
