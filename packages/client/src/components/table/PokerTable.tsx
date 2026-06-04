@@ -84,6 +84,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
               isActive={currentPlayerIndex === 0}
               isDealer={dealerPosition === 0}
               showCards={getPlayer(0)!.playerId === currentPlayerId}
+              holeCards={getHoleCards(0)}
             />
           )}
         </div>
@@ -104,6 +105,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
                 isActive={currentPlayerIndex === 1}
                 isDealer={dealerPosition === 1}
                 showCards={getPlayer(1)!.playerId === currentPlayerId}
+                holeCards={getHoleCards(1)}
               />
             )}
           </div>
@@ -116,6 +118,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
                 isActive={currentPlayerIndex === 2}
                 isDealer={dealerPosition === 2}
                 showCards={getPlayer(2)!.playerId === currentPlayerId}
+                holeCards={getHoleCards(2)}
               />
             )}
           </div>
