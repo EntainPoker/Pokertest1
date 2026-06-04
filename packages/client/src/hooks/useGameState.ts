@@ -46,11 +46,17 @@ export function useGameState() {
     const handleGameStart = (payload: GameStatePayload) => {
       const { handState, tournament } = payload;
 
-      // Extract current player's hole cards (privacy: only our cards)
+      // Preserve existing hole cards if we already received them via game:deal
+      const existingHoleCards = useGameStore.getState().myHoleCards;
+
+      // Extract current player's hole cards from payload (may be empty in sanitized state)
       const myPlayer = handState.players.find(
         (p) => p.playerId === currentPlayerId,
       );
-      const myHoleCards = myPlayer?.holeCards ?? [];
+      const payloadHoleCards = myPlayer?.holeCards ?? [];
+      
+      // Use payload cards if they exist, otherwise preserve existing
+      const myHoleCards = payloadHoleCards.length > 0 ? payloadHoleCards : existingHoleCards;
 
       // Determine if it's our turn
       const currentTurnPlayer =
