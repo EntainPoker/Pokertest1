@@ -149,7 +149,10 @@ export function handlePlayerAction(
 
   // Update the betting round tracker
   if (instance.bettingRound) {
-    instance.bettingRound.recordAction(handState.currentPlayerIndex, result.processedAction!);
+    const allInBet = result.processedAction!.type === 'all_in'
+      ? result.updatedPlayer!.currentBet
+      : undefined;
+    instance.bettingRound.recordAction(handState.currentPlayerIndex, result.processedAction!, allInBet);
   }
 
   // Update pot from player bets
