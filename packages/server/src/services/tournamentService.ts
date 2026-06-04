@@ -148,7 +148,13 @@ export function checkAndStartTournament(gameInstanceId: string): void {
   };
 
   // Emit game:start to all registered players within 5 seconds
-  setTimeout(() => {
+  setTimeout(async () => {
+    // Store the game state so late-joining players can get it
+    try {
+      const indexModule = await import('../index.js');
+      indexModule.activeGameStates.set(gameInstanceId, gameState);
+    } catch { /* ignore if circular import issue */ }
+
     for (const player of registeredPlayers) {
       const connection = playerConnections.get(player.player_id as string);
       if (connection) {
