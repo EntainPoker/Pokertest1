@@ -81,7 +81,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   const bottomIndex = myIndex >= 0 ? myIndex : players.length - 1;
 
   return (
-    <div className="w-full h-screen max-h-[100dvh] bg-gray-950 flex flex-col overflow-hidden">
+    <div className="w-full h-full bg-gray-950 flex flex-col overflow-hidden">
       {/* Last Hand button — fixed position top-left */}
       {gameId && (
         <button
