@@ -190,7 +190,7 @@ export function GamePage() {
 
   // Waiting state — game hasn't started yet
   // Keep a ref to the last valid handState to prevent blank flashes during transitions
-  const lastHandStateRef = React.useRef(handState);
+  const lastHandStateRef = useRef(handState);
   if (handState) {
     lastHandStateRef.current = handState;
   }
