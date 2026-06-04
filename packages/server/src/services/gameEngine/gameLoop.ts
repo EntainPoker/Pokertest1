@@ -834,7 +834,7 @@ function persistState(gameInstanceId: string, gameState: GameState): void {
  * Hole cards are stripped — each player gets their own cards via game:deal.
  */
 function emitGameState(gameInstanceId: string, gameState: GameState): void {
-  // Create a sanitized version without hole cards
+  // Create a sanitized version without hole cards and with safe serializable values
   const sanitizedState: GameState = {
     ...gameState,
     handState: {
@@ -842,6 +842,12 @@ function emitGameState(gameInstanceId: string, gameState: GameState): void {
       players: gameState.handState.players.map(p => ({
         ...p,
         holeCards: [], // Never broadcast hole cards in state
+      })),
+      lastAction: null, // Don't send action objects to prevent React render crashes
+      turnStartedAt: new Date(), // Always send as fresh Date (serialized to string by Socket.IO)
+      sidePots: (gameState.handState.sidePots || []).map(sp => ({
+        amount: typeof sp.amount === 'number' ? sp.amount : 0,
+        eligiblePlayerIds: Array.isArray(sp.eligiblePlayerIds) ? sp.eligiblePlayerIds : [],
       })),
     },
   };

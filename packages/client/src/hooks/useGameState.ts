@@ -114,9 +114,13 @@ export function useGameState() {
           ? handState.currentPlayerIndex
           : 0;
 
+      // Sanitize handState to prevent rendering objects as React children
       const sanitizedHandState = {
         ...handState,
         currentPlayerIndex: safeCurrentPlayerIndex,
+        lastAction: null, // Never render action objects
+        pot: typeof handState.pot === 'number' ? handState.pot : 0,
+        sidePots: Array.isArray(handState.sidePots) ? handState.sidePots : [],
       };
 
       // Preserve existing hole cards (game:state sends sanitized state without cards)
