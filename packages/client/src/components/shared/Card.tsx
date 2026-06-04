@@ -29,7 +29,7 @@ export function Card({ rank, suit, faceDown = false }: CardProps) {
   if (faceDown || !rank || !suit) {
     return (
       <div
-        className="w-11 h-16 sm:w-[52px] sm:h-[78px] md:w-14 md:h-[84px] min-w-[44px] min-h-[44px] rounded-lg bg-gradient-to-br from-gray-800 via-gray-900 to-gray-950 border border-gray-600/50 shadow-lg flex items-center justify-center overflow-hidden"
+        className="w-9 h-13 sm:w-11 sm:h-16 md:w-14 md:h-[84px] min-w-[36px] min-h-[36px] rounded-lg bg-gradient-to-br from-gray-800 via-gray-900 to-gray-950 border border-gray-600/50 shadow-lg flex items-center justify-center overflow-hidden"
         aria-label="Face-down card"
         role="img"
       >
@@ -60,7 +60,7 @@ export function Card({ rank, suit, faceDown = false }: CardProps) {
 
   return (
     <div
-      className={`relative w-11 h-16 sm:w-[52px] sm:h-[78px] md:w-14 md:h-[84px] min-w-[44px] min-h-[44px] rounded-lg bg-white border border-gray-200 shadow-lg flex flex-col items-start justify-start p-1 sm:p-1.5 ${colorClass}`}
+      className={`relative w-9 h-13 sm:w-11 sm:h-16 md:w-14 md:h-[84px] min-w-[36px] min-h-[36px] rounded-lg bg-white border border-gray-200 shadow-lg flex flex-col items-start justify-start p-0.5 sm:p-1.5 ${colorClass}`}
       aria-label={`${rank} of ${suit}`}
       role="img"
     >
