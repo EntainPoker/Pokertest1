@@ -149,8 +149,8 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
         </div>
       </div>
 
-      {/* Action Panel — wired to emit game:action via WebSocket */}
-      <div className="absolute bottom-0 left-0 right-0 z-10">
+      {/* Action Panel — fixed at bottom of viewport, outside the table */}
+      <div className="fixed bottom-0 left-0 right-0 z-50">
         <ActionPanel
           handState={handState}
           currentPlayerId={currentPlayerId}
