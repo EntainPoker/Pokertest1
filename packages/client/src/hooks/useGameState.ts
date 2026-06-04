@@ -113,9 +113,22 @@ export function useGameState() {
     const handleGameTurn = (payload: GameTurnPayload) => {
       const isMyTurn = payload.playerId === currentPlayerId;
 
-      useGameStore.setState({
-        isMyTurn,
-        turnTimeRemaining: payload.timeRemaining,
+      // Also update currentPlayerIndex in hand state so ActionPanel shows correctly
+      useGameStore.setState((state) => {
+        if (!state.handState) return { isMyTurn, turnTimeRemaining: payload.timeRemaining };
+        
+        const playerIndex = state.handState.players.findIndex(
+          p => p.playerId === payload.playerId
+        );
+        
+        return {
+          isMyTurn,
+          turnTimeRemaining: payload.timeRemaining,
+          handState: {
+            ...state.handState,
+            currentPlayerIndex: playerIndex >= 0 ? playerIndex : state.handState.currentPlayerIndex,
+          },
+        };
       });
     };
 
