@@ -52,12 +52,12 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto aspect-[4/3] sm:aspect-[16/10] relative">
+    <div className="w-full h-screen max-h-screen bg-gradient-to-b from-gray-900 to-gray-950 flex items-center justify-center p-2 sm:p-4 relative overflow-hidden">
       {/* Last Hand button — fixed position top-left */}
       {gameId && (
         <button
           onClick={() => setShowLastHand(true)}
-          className="absolute top-2 left-2 z-20 min-w-[44px] min-h-[44px] px-3 py-2 rounded-lg bg-gray-800/90 border border-gray-600 text-gray-200 text-xs sm:text-sm font-medium hover:bg-gray-700 transition-colors shadow-md"
+          className="absolute top-3 left-3 z-20 min-w-[44px] min-h-[44px] px-4 py-2.5 rounded-xl bg-gray-800/90 border border-gray-600/50 text-gray-300 text-xs sm:text-sm font-medium hover:bg-gray-700 hover:text-white transition-all shadow-lg backdrop-blur-sm"
           aria-label="View last hand history"
         >
           Last Hand
@@ -68,59 +68,68 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
       {showLastHand && gameId && (
         <LastHandSummary gameId={gameId} onClose={() => setShowLastHand(false)} />
       )}
-      {/* Table felt background */}
-      <div className="absolute inset-0 rounded-[2rem] sm:rounded-[3rem] bg-poker-felt border-4 sm:border-8 border-poker-green shadow-2xl overflow-hidden">
-        {/* Inner table border */}
-        <div className="absolute inset-3 sm:inset-6 rounded-[1.5rem] sm:rounded-[2.5rem] border-2 border-poker-green/50" />
-      </div>
 
-      {/* Table content */}
-      <div className="relative w-full h-full flex flex-col items-center justify-between p-3 sm:p-6 md:p-8">
-        {/* Top player (position 0) */}
-        <div className="flex justify-center w-full">
-          {getPlayer(0) && (
-            <PlayerSeat
-              player={getPlayer(0)!}
-              isActive={currentPlayerIndex === 0}
-              isDealer={dealerPosition === 0}
-              showCards={getPlayer(0)!.playerId === currentPlayerId}
-              holeCards={getHoleCards(0)}
-            />
-          )}
+      {/* Table container */}
+      <div className="w-full max-w-4xl aspect-[4/3] sm:aspect-[16/10] relative">
+        {/* Table wood-grain border */}
+        <div className="absolute inset-0 rounded-[3rem] sm:rounded-[4rem] bg-gradient-to-b from-amber-900 via-amber-800 to-amber-950 shadow-2xl shadow-black/50 p-2 sm:p-3">
+          {/* Table felt */}
+          <div className="w-full h-full rounded-[2.5rem] sm:rounded-[3.5rem] bg-gradient-to-br from-poker-felt via-green-900 to-poker-felt border-2 border-green-800/50 shadow-inner overflow-hidden relative">
+            {/* Inner rail highlight */}
+            <div className="absolute inset-3 sm:inset-5 rounded-[2rem] sm:rounded-[3rem] border border-green-700/30" />
+            {/* Subtle center glow */}
+            <div className="absolute inset-0 bg-radial-gradient pointer-events-none opacity-20 bg-gradient-to-r from-transparent via-green-600/20 to-transparent" />
+          </div>
         </div>
 
-        {/* Center area: community cards + pot */}
-        <div className="flex flex-col items-center gap-2 sm:gap-3">
-          <PotDisplay amount={pot} sidePots={sidePots} />
-          <CommunityCards cards={communityCards} />
-        </div>
-
-        {/* Bottom players (positions 1 and 2) */}
-        <div className="flex justify-between w-full px-2 sm:px-8 md:px-16">
-          {/* Bottom-left (position 1) */}
-          <div className="flex justify-start">
-            {getPlayer(1) && (
+        {/* Table content */}
+        <div className="relative w-full h-full flex flex-col items-center justify-between p-4 sm:p-8 md:p-10 z-10">
+          {/* Top player (position 0) */}
+          <div className="flex justify-center w-full">
+            {getPlayer(0) && (
               <PlayerSeat
-                player={getPlayer(1)!}
-                isActive={currentPlayerIndex === 1}
-                isDealer={dealerPosition === 1}
-                showCards={getPlayer(1)!.playerId === currentPlayerId}
-                holeCards={getHoleCards(1)}
+                player={getPlayer(0)!}
+                isActive={currentPlayerIndex === 0}
+                isDealer={dealerPosition === 0}
+                showCards={getPlayer(0)!.playerId === currentPlayerId}
+                holeCards={getHoleCards(0)}
               />
             )}
           </div>
 
-          {/* Bottom-right (position 2) */}
-          <div className="flex justify-end">
-            {getPlayer(2) && (
-              <PlayerSeat
-                player={getPlayer(2)!}
-                isActive={currentPlayerIndex === 2}
-                isDealer={dealerPosition === 2}
-                showCards={getPlayer(2)!.playerId === currentPlayerId}
-                holeCards={getHoleCards(2)}
-              />
-            )}
+          {/* Center area: pot + community cards */}
+          <div className="flex flex-col items-center gap-2 sm:gap-4">
+            <PotDisplay amount={pot} sidePots={sidePots} />
+            <CommunityCards cards={communityCards} />
+          </div>
+
+          {/* Bottom players (positions 1 and 2) */}
+          <div className="flex justify-between w-full px-0 sm:px-6 md:px-12">
+            {/* Bottom-left (position 1) */}
+            <div className="flex justify-start">
+              {getPlayer(1) && (
+                <PlayerSeat
+                  player={getPlayer(1)!}
+                  isActive={currentPlayerIndex === 1}
+                  isDealer={dealerPosition === 1}
+                  showCards={getPlayer(1)!.playerId === currentPlayerId}
+                  holeCards={getHoleCards(1)}
+                />
+              )}
+            </div>
+
+            {/* Bottom-right (position 2) */}
+            <div className="flex justify-end">
+              {getPlayer(2) && (
+                <PlayerSeat
+                  player={getPlayer(2)!}
+                  isActive={currentPlayerIndex === 2}
+                  isDealer={dealerPosition === 2}
+                  showCards={getPlayer(2)!.playerId === currentPlayerId}
+                  holeCards={getHoleCards(2)}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>
