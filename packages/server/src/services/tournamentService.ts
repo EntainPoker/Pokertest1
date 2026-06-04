@@ -1,5 +1,5 @@
 import { query, transaction } from '../config/database.js';
-import { io } from '../index.js';
+import { io, activeGameStates } from '../index.js';
 import { emitLobbyUpdate } from './lobbyService.js';
 import type { GameState, Tournament, TournamentPlayer, HandState } from '@spin-and-go/shared';
 import { BLIND_SCHEDULE } from '@spin-and-go/shared';
