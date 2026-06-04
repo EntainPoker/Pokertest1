@@ -96,6 +96,8 @@ export function useGameState() {
 
     // --- game:state ---
     const handleGameState = (payload: GameStatePayload) => {
+      if (!payload || !payload.handState) return;
+      
       const { handState, tournament } = payload;
 
       // Preserve existing hole cards (game:state sends sanitized state without cards)
