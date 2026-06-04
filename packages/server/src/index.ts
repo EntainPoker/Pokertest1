@@ -10,6 +10,10 @@ import lobbyRoutes from './routes/lobby.js';
 import adminRoutes from './routes/admin.js';
 import historyRoutes from './routes/history.js';
 import { runSQLiteMigrations } from './migrations/setup-sqlite.js';
+import { playerConnections } from './services/tournamentService.js';
+import { activeGameStates } from './services/gameStateStore.js';
+import { handlePlayerAction, getPlayerHoleCards } from './services/gameEngine/gameLoop.js';
+import type { GameState, PlayerAction } from '@spin-and-go/shared';
 
 dotenv.config();
 
