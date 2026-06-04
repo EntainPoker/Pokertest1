@@ -111,7 +111,20 @@ export function GamePage() {
           const updates: any = {};
           
           if (!useGameStore.getState().handState) {
-            updates.handState = hs;
+            updates.handState = {
+              ...hs,
+              lastAction: null,
+              turnStartedAt: typeof hs.turnStartedAt === 'string'
+                ? hs.turnStartedAt
+                : String(hs.turnStartedAt ?? ''),
+              pot: typeof hs.pot === 'number' ? hs.pot : Number(hs.pot) || 0,
+              sidePots: Array.isArray(hs.sidePots)
+                ? hs.sidePots.map((sp: any) => ({
+                    amount: typeof sp.amount === 'number' ? sp.amount : 0,
+                    eligiblePlayerIds: Array.isArray(sp.eligiblePlayerIds) ? sp.eligiblePlayerIds : [],
+                  }))
+                : [],
+            };
             updates.tournament = t;
             updates.gameStatus = 'playing';
             updates.isMyTurn = hs.players[hs.currentPlayerIndex]?.playerId === currentPlayerId;
