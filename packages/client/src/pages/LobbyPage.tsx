@@ -47,32 +47,35 @@ export function LobbyPage() {
   const balance = useAuthStore((s) => s.player?.balance ?? 0);
 
   return (
-    <div className="min-h-screen bg-poker-dark">
-      {/* App header */}
-      <nav className="bg-gray-800 border-b border-gray-700 px-4 py-3">
+    <div className="min-h-screen bg-gradient-to-b from-gray-950 to-black">
+      {/* Premium app header */}
+      <nav className="bg-gray-900/80 backdrop-blur-md border-b border-gray-800/50 px-4 py-3 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <span className="text-lg font-bold text-poker-gold">
+            <span className="text-xl font-extrabold bg-gradient-to-r from-poker-gold to-amber-400 bg-clip-text text-transparent">
               Spin &amp; Go
             </span>
             {player && (
-              <span className="text-sm text-gray-300">
+              <span className="text-sm text-gray-400 font-medium">
                 {player.username}
               </span>
             )}
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {/* Balance display */}
-            <span className="text-sm font-medium text-poker-gold">
-              ${balance}
-            </span>
+            <div className="flex items-center gap-2 bg-gray-800/60 border border-poker-gold/20 rounded-full px-4 py-1.5">
+              <span className="w-2 h-2 rounded-full bg-poker-gold" aria-hidden="true" />
+              <span className="text-sm font-bold text-poker-gold">
+                ${balance.toLocaleString()}
+              </span>
+            </div>
 
             {/* Sign out button */}
             <button
               type="button"
               onClick={handleSignOut}
-              className="min-h-[44px] min-w-[44px] px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+              className="min-h-[44px] min-w-[44px] px-4 py-2 rounded-full text-sm font-medium text-gray-400 border border-gray-700 hover:text-white hover:border-gray-500 hover:bg-gray-800 transition-all"
               aria-label="Sign out"
             >
               Sign Out
