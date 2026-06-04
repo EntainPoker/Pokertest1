@@ -44,7 +44,16 @@ export function useGameState() {
 
     // --- game:start ---
     const handleGameStart = (payload: GameStatePayload) => {
-      const { handState, tournament } = payload;
+      // NUCLEAR FIX: JSON roundtrip strips ALL non-serializable objects
+      let safePayload: GameStatePayload;
+      try {
+        safePayload = JSON.parse(JSON.stringify(payload));
+      } catch {
+        return;
+      }
+
+      const { handState, tournament } = safePayload;
+      handState.lastAction = null;
 
       // Preserve existing hole cards if we already received them via game:deal
       const existingHoleCards = useGameStore.getState().myHoleCards;
@@ -59,35 +68,16 @@ export function useGameState() {
       const myHoleCards = payloadHoleCards.length > 0 ? payloadHoleCards : existingHoleCards;
 
       // Determine if it's our turn
-      const currentTurnPlayer =
-        handState.players[handState.currentPlayerIndex];
+      const currentTurnPlayer = handState.players[handState.currentPlayerIndex];
       const isMyTurn = currentTurnPlayer?.playerId === currentPlayerId;
 
-      // Sanitize handState to prevent rendering objects as React children (Error #300).
-      // The server may send lastAction as an object ({type, amount}) and turnStartedAt
-      // as a Date — neither is safe to pass into React's render tree.
-      const sanitizedHandState = {
-        ...handState,
-        lastAction: null,
-        turnStartedAt: typeof handState.turnStartedAt === 'string'
-          ? handState.turnStartedAt
-          : String(handState.turnStartedAt ?? ''),
-        pot: typeof handState.pot === 'number' ? handState.pot : Number(handState.pot) || 0,
-        sidePots: Array.isArray(handState.sidePots)
-          ? handState.sidePots.map(sp => ({
-              amount: typeof sp.amount === 'number' ? sp.amount : 0,
-              eligiblePlayerIds: Array.isArray(sp.eligiblePlayerIds) ? sp.eligiblePlayerIds : [],
-            }))
-          : [],
-      };
-
       useGameStore.setState({
-        handState: sanitizedHandState,
+        handState,
         tournament,
         gameStatus: 'playing',
         myHoleCards,
         isMyTurn,
-        turnTimeRemaining: sanitizedHandState.turnTimeoutSeconds,
+        turnTimeRemaining: handState.turnTimeoutSeconds,
         tournamentResult: null,
       });
     };
