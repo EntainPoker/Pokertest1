@@ -34,8 +34,8 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   /** Emit player action via WebSocket */
   const handleAction = useCallback((action: PlayerAction) => {
     const socket = getSocket();
-    socket.emit('game:action', action);
-  }, []);
+    socket.emit('game:action', { gameId, playerId: currentPlayerId, action });
+  }, [gameId, currentPlayerId]);
 
   const getPlayer = (index: number) => players[index] ?? null;
 
