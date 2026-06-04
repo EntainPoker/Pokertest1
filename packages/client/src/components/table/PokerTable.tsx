@@ -163,8 +163,8 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
         )}
       </div>
 
-      {/* Action Panel — fixed at bottom of viewport */}
-      <div className="fixed bottom-0 left-0 right-0 z-50">
+      {/* Action Panel — in normal flow, NOT fixed/absolute */}
+      <div className="w-full">
         <ActionPanel
           handState={handState}
           currentPlayerId={currentPlayerId}
