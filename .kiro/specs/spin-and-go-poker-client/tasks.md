@@ -204,7 +204,7 @@ This implementation plan breaks down the Spin and Go poker client into increment
     - Generate showdown scenarios with known hands and verify correct winner determination and pot splitting for ties
     - **Validates: Requirements 8.6, 8.7, 8.8**
 
-  - [ ] 8.10 Implement player action processing
+  - [-] 8.10 Implement player action processing
     - Create action validator: determine valid actions based on game state (check, bet, call, raise, fold, all-in)
     - Implement each action: check (pass), bet (validate range, deduct), call (match current bet), raise (validate min raise, deduct), fold (remove from hand), all-in (wager remaining stack)
     - Implement 30-second turn timer with auto-fold
