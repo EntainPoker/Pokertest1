@@ -16,8 +16,8 @@ interface ActionPanelProps {
 }
 
 /**
- * Premium player action panel with preset raise buttons, large action buttons,
- * slider for custom amounts, and a timer countdown bar.
+ * Compact mobile-first action panel — GGPoker-style.
+ * Single row of action buttons at bottom, raise presets as horizontal scroll above.
  * Only visible when it's the current player's turn.
  * All buttons have minimum 44x44px touch targets.
  * Satisfies Requirements 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 7.10, 13.2.
@@ -144,18 +144,18 @@ export function ActionPanel({
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto px-3 sm:px-5 py-4 sm:py-5 bg-gray-900/95 backdrop-blur-md rounded-t-2xl border-t border-x border-gray-700/50 shadow-2xl">
+    <div className="w-full max-w-lg mx-auto px-3 py-3 bg-gray-900/98 backdrop-blur-md rounded-t-2xl border-t border-x border-gray-700/50 shadow-2xl">
       {/* Timer countdown bar */}
-      <div className="mb-3">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs sm:text-sm font-bold text-poker-gold uppercase tracking-wide">Your Turn</span>
+      <div className="mb-2">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-xs font-bold text-poker-gold">Your turn</span>
           <Timer
             seconds={turnTimeRemaining}
             onExpire={onTurnExpire}
-            className="text-base sm:text-lg font-bold"
+            className="text-sm font-bold"
           />
         </div>
-        <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+        <div className="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-poker-gold to-amber-500 rounded-full transition-all duration-1000 ease-linear"
             style={{ width: `${timerProgress}%` }}
@@ -163,20 +163,20 @@ export function ActionPanel({
         </div>
       </div>
 
-      {/* Bet/Raise amount input */}
+      {/* Bet/Raise amount input — condensed */}
       {showAmountInput && (
-        <div className="mb-4">
-          {/* Preset raise pills */}
-          <div className="flex gap-1.5 sm:gap-2 mb-3 overflow-x-auto pb-1">
+        <div className="mb-2">
+          {/* Preset raise pills — horizontal scrollable row */}
+          <div className="flex gap-1.5 mb-2 overflow-x-auto pb-1 scrollbar-none">
             {presets.map((preset) => (
               <button
                 key={preset.label}
                 type="button"
                 onClick={() => setBetAmount(preset.amount)}
-                className={`min-w-[44px] min-h-[44px] px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
+                className={`min-w-[44px] min-h-[44px] px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
                   betAmount === preset.amount
                     ? 'bg-poker-gold/20 border-poker-gold/60 text-poker-gold border'
-                    : 'bg-gray-800 border border-gray-700 text-gray-300 hover:border-gray-500 hover:text-white'
+                    : 'bg-gray-800 border border-gray-700 text-gray-300 hover:border-gray-500'
                 }`}
               >
                 {preset.label}
@@ -184,19 +184,18 @@ export function ActionPanel({
             ))}
           </div>
 
-          <div className="flex items-center gap-2 mb-2">
-            {/* Minus button */}
+          {/* Compact slider + amount row */}
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => adjustBet(-minRaise)}
-              className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-xl bg-gray-800 border border-gray-700 hover:bg-gray-700 hover:border-gray-600 active:bg-gray-600 text-gray-100 font-bold text-lg transition-all"
+              className="min-w-[44px] min-h-[44px] w-9 h-9 flex items-center justify-center rounded-lg bg-gray-800 border border-gray-700 text-gray-100 font-bold text-sm transition-all"
               aria-label="Decrease bet amount"
             >
               −
             </button>
 
-            {/* Amount display */}
-            <div className="flex-1 text-center">
+            <div className="flex-1 flex flex-col gap-1">
               <input
                 type="number"
                 value={betAmount}
@@ -208,48 +207,49 @@ export function ActionPanel({
                 }}
                 min={betMin}
                 max={betMax}
-                className="w-full min-h-[44px] text-center text-lg sm:text-xl font-bold bg-gray-800 border border-gray-600 rounded-xl text-poker-gold px-2 py-2 focus:outline-none focus:border-poker-gold focus:ring-1 focus:ring-poker-gold/30 transition-all"
+                className="w-full min-h-[44px] text-center text-base font-bold bg-gray-800 border border-gray-600 rounded-lg text-poker-gold px-2 py-1.5 focus:outline-none focus:border-poker-gold transition-all"
                 aria-label="Bet amount"
+              />
+              <input
+                type="range"
+                min={betMin}
+                max={betMax}
+                value={betAmount}
+                onChange={(e) => setBetAmount(parseInt(e.target.value, 10))}
+                className="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-poker-gold"
+                aria-label="Bet amount slider"
               />
             </div>
 
-            {/* Plus button */}
             <button
               type="button"
               onClick={() => adjustBet(minRaise)}
-              className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-xl bg-gray-800 border border-gray-700 hover:bg-gray-700 hover:border-gray-600 active:bg-gray-600 text-gray-100 font-bold text-lg transition-all"
+              className="min-w-[44px] min-h-[44px] w-9 h-9 flex items-center justify-center rounded-lg bg-gray-800 border border-gray-700 text-gray-100 font-bold text-sm transition-all"
               aria-label="Increase bet amount"
             >
               +
             </button>
           </div>
-
-          {/* Slider */}
-          <input
-            type="range"
-            min={betMin}
-            max={betMax}
-            value={betAmount}
-            onChange={(e) => setBetAmount(parseInt(e.target.value, 10))}
-            className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-poker-gold"
-            aria-label="Bet amount slider"
-          />
-
-          {/* Min/Max labels */}
-          <div className="flex justify-between text-[10px] sm:text-xs text-gray-500 mt-1.5">
-            <span>Min: ${betMin}</span>
-            <span>Max: ${betMax}</span>
-          </div>
         </div>
       )}
 
-      {/* Action buttons */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+      {/* Action buttons — single row */}
+      <div className="flex gap-2">
+        {validActions.fold && (
+          <button
+            type="button"
+            onClick={handleFold}
+            className="min-w-[44px] min-h-[44px] flex-1 px-3 py-3 rounded-xl bg-gray-800 border border-red-500/40 hover:bg-red-900/30 text-red-400 font-semibold text-sm transition-all"
+          >
+            Fold
+          </button>
+        )}
+
         {validActions.check && (
           <button
             type="button"
             onClick={handleCheck}
-            className="min-w-[44px] min-h-[44px] px-4 py-3.5 rounded-xl bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 active:from-green-700 active:to-green-800 text-white font-bold text-sm sm:text-base transition-all shadow-lg shadow-green-700/30"
+            className="min-w-[44px] min-h-[44px] flex-1 px-3 py-3 rounded-xl bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-bold text-sm transition-all shadow-md"
           >
             Check
           </button>
@@ -259,7 +259,7 @@ export function ActionPanel({
           <button
             type="button"
             onClick={handleCall}
-            className="min-w-[44px] min-h-[44px] px-4 py-3.5 rounded-xl bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 active:from-green-700 active:to-green-800 text-white font-bold text-sm sm:text-base transition-all shadow-lg shadow-green-700/30"
+            className="min-w-[44px] min-h-[44px] flex-1 px-3 py-3 rounded-xl bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-bold text-sm transition-all shadow-md"
           >
             Call ${callAmount}
           </button>
@@ -269,7 +269,7 @@ export function ActionPanel({
           <button
             type="button"
             onClick={handleBet}
-            className="min-w-[44px] min-h-[44px] px-4 py-3.5 rounded-xl bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 active:from-blue-700 active:to-blue-800 text-white font-bold text-sm sm:text-base transition-all shadow-lg shadow-blue-700/30"
+            className="min-w-[44px] min-h-[44px] flex-1 px-3 py-3 rounded-xl bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold text-sm transition-all shadow-md"
           >
             Bet ${betAmount}
           </button>
@@ -279,7 +279,7 @@ export function ActionPanel({
           <button
             type="button"
             onClick={handleRaise}
-            className="min-w-[44px] min-h-[44px] px-4 py-3.5 rounded-xl bg-gradient-to-b from-poker-gold to-amber-600 hover:from-yellow-400 hover:to-amber-500 active:from-amber-600 active:to-amber-700 text-gray-900 font-bold text-sm sm:text-base transition-all shadow-lg shadow-poker-gold/30"
+            className="min-w-[44px] min-h-[44px] flex-1 px-3 py-3 rounded-xl bg-gradient-to-b from-poker-gold to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-gray-900 font-bold text-sm transition-all shadow-md"
           >
             Raise ${betAmount}
           </button>
@@ -289,19 +289,9 @@ export function ActionPanel({
           <button
             type="button"
             onClick={handleAllIn}
-            className="min-w-[44px] min-h-[44px] px-4 py-3.5 rounded-xl bg-gradient-to-b from-amber-500 to-red-600 hover:from-amber-400 hover:to-red-500 active:from-amber-600 active:to-red-700 text-white font-bold text-sm sm:text-base transition-all shadow-lg shadow-red-600/30 animate-pulse"
+            className="min-w-[44px] min-h-[44px] flex-1 px-3 py-3 rounded-xl bg-gradient-to-b from-amber-500 to-red-600 hover:from-amber-400 hover:to-red-500 text-white font-bold text-sm transition-all shadow-md animate-pulse"
           >
             All-In ${myPlayer.chipCount}
-          </button>
-        )}
-
-        {validActions.fold && (
-          <button
-            type="button"
-            onClick={handleFold}
-            className="min-w-[44px] min-h-[44px] px-4 py-3 rounded-xl bg-gray-800 border border-red-500/40 hover:bg-red-900/30 hover:border-red-500/60 active:bg-red-900/50 text-red-400 font-semibold text-sm sm:text-base transition-all"
-          >
-            Fold
           </button>
         )}
       </div>
