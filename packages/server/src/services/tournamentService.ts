@@ -1,5 +1,6 @@
 import { query, transaction } from '../config/database.js';
-import { io, activeGameStates } from '../index.js';
+import { io } from '../index.js';
+import { activeGameStates } from './gameStateStore.js';
 import { emitLobbyUpdate } from './lobbyService.js';
 import type { GameState, Tournament, TournamentPlayer, HandState } from '@spin-and-go/shared';
 import { BLIND_SCHEDULE } from '@spin-and-go/shared';
@@ -147,14 +148,11 @@ export function checkAndStartTournament(gameInstanceId: string): void {
     tournament,
   };
 
-  // Emit game:start to all registered players within 5 seconds
-  setTimeout(async () => {
-    // Store the game state so late-joining players can get it
-    try {
-      const indexModule = await import('../index.js');
-      indexModule.activeGameStates.set(gameInstanceId, gameState);
-    } catch { /* ignore if circular import issue */ }
+  // Store game state immediately so late-joining sockets can get it
+  activeGameStates.set(gameInstanceId, gameState);
 
+  // Emit game:start to all registered players within 5 seconds
+  setTimeout(() => {
     for (const player of registeredPlayers) {
       const connection = playerConnections.get(player.player_id as string);
       if (connection) {
