@@ -4,6 +4,7 @@ import { PlayerSeat } from './PlayerSeat';
 import { CommunityCards } from './CommunityCards';
 import { PotDisplay } from './PotDisplay';
 import { ActionPanel } from './ActionPanel';
+import { Card } from '../shared/Card';
 import { LastHandSummary } from '../history/LastHandSummary';
 import { getSocket } from '../../services/socket';
 import { useGameStore } from '../../stores/gameStore';
