@@ -114,7 +114,8 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
           <div className={`flex ${players.length === 2 ? 'justify-center' : 'justify-between'} w-full px-4 sm:px-8`}>
             {opponentIndices.map((idx) => {
               const p = getPlayer(idx);
-              return p ? (
+              if (!p) return null;
+              return (
                 <PlayerSeat
                   key={p.playerId}
                   player={p}
@@ -123,7 +124,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
                   showCards={p.playerId === currentPlayerId}
                   holeCards={getHoleCards(idx)}
                 />
-              ) : null;
+              );
             })}
           </div>
 
