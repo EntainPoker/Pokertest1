@@ -87,23 +87,44 @@ export function GamePage() {
     }
   }, [socket, gameId, currentPlayerId]);
 
-  // REST fallback — poll for game state if WebSocket doesn't deliver within 3 seconds
+  // REST fallback — poll for game state and hole cards
+  const myHoleCards = useGameStore((s) => s.myHoleCards);
+  
   useEffect(() => {
-    if (!gameId || handState) return;
+    if (!gameId || !currentPlayerId) return;
+    
+    // Poll if: no hand state yet, OR hand state exists but hole cards are missing
+    const needsState = !handState;
+    const needsCards = handState && (!myHoleCards || myHoleCards.length === 0);
+    
+    if (!needsState && !needsCards) return;
 
     const pollInterval = setInterval(async () => {
       try {
         const data = await apiFetch<{ state: any }>(`/api/game/${gameId}/state?playerId=${currentPlayerId}`);
-        if (data.state && !useGameStore.getState().handState) {
+        if (data.state) {
           const { handState: hs, tournament: t } = data.state;
-          useGameStore.setState({
-            handState: hs,
-            tournament: t,
-            gameStatus: 'playing',
-            myHoleCards: hs.players.find((p: any) => p.playerId === currentPlayerId)?.holeCards ?? useGameStore.getState().myHoleCards,
-            isMyTurn: hs.players[hs.currentPlayerIndex]?.playerId === currentPlayerId,
-            turnTimeRemaining: hs.turnTimeoutSeconds,
-          });
+          const serverHoleCards = hs.players.find((p: any) => p.playerId === currentPlayerId)?.holeCards ?? [];
+          const currentStoreCards = useGameStore.getState().myHoleCards;
+          
+          const updates: any = {};
+          
+          if (!useGameStore.getState().handState) {
+            updates.handState = hs;
+            updates.tournament = t;
+            updates.gameStatus = 'playing';
+            updates.isMyTurn = hs.players[hs.currentPlayerIndex]?.playerId === currentPlayerId;
+            updates.turnTimeRemaining = hs.turnTimeoutSeconds;
+          }
+          
+          // Always update hole cards if server has them and we don't
+          if (serverHoleCards.length > 0 && currentStoreCards.length === 0) {
+            updates.myHoleCards = serverHoleCards;
+          }
+          
+          if (Object.keys(updates).length > 0) {
+            useGameStore.setState(updates);
+          }
         }
       } catch {
         // Game state not ready yet, keep polling
@@ -111,7 +132,7 @@ export function GamePage() {
     }, 2000);
 
     return () => clearInterval(pollInterval);
-  }, [gameId, handState, currentPlayerId]);
+  }, [gameId, handState, currentPlayerId, myHoleCards]);
 
   const handleBackToLobby = useCallback(() => {
     useGameStore.getState().reset();
