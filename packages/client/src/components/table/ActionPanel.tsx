@@ -291,7 +291,7 @@ export function ActionPanel({
             onClick={handleAllIn}
             className="min-w-[44px] min-h-[44px] flex-1 px-3 py-3 rounded-xl bg-gradient-to-b from-amber-500 to-red-600 hover:from-amber-400 hover:to-red-500 text-white font-bold text-sm transition-all shadow-md animate-pulse"
           >
-            All-In ${myPlayer.chipCount}
+            {`All-In $${myPlayer.chipCount}`}
           </button>
         )}
       </div>
