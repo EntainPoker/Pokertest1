@@ -231,18 +231,18 @@ export function GamePage() {
 
   return (
     <div className="h-screen max-h-[100dvh] bg-gray-900 flex flex-col overflow-hidden">
-      {/* Game header */}
-      <nav className="shrink-0 bg-gray-800 border-b border-gray-700 px-4 py-2">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      {/* Game header — compact */}
+      <nav className="shrink-0 bg-gray-800 border-b border-gray-700 px-3 py-1">
+        <div className="flex items-center justify-between">
           <button
             type="button"
             onClick={handleBackToLobby}
-            className="min-h-[44px] min-w-[44px] px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+            className="min-h-[36px] min-w-[36px] px-2 py-1 rounded-md text-xs font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
           >
             ← Lobby
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {/* Blind timer */}
             {tournament && tournament.blindSchedule && tournament.blindSchedule.length > 0 && (
               <BlindTimer
@@ -257,7 +257,7 @@ export function GamePage() {
               <button
                 type="button"
                 onClick={() => setShowTournamentLobby(true)}
-                className="min-h-[44px] min-w-[44px] px-3 py-2 rounded-md text-sm font-medium text-poker-gold border border-poker-gold/50 hover:bg-poker-gold/10 transition-colors"
+                className="min-h-[36px] min-w-[36px] px-2 py-1 rounded-md text-xs font-medium text-poker-gold border border-poker-gold/50 hover:bg-poker-gold/10 transition-colors"
                 aria-label="Open tournament lobby"
               >
                 Tournament
@@ -267,8 +267,8 @@ export function GamePage() {
         </div>
       </nav>
 
-      {/* Poker table */}
-      <main className="flex-1 min-h-0 flex items-stretch">
+      {/* Poker table — fills remaining space */}
+      <main className="flex-1 min-h-0">
         <ErrorBoundary>
           <PokerTable
             handState={displayHandState}
