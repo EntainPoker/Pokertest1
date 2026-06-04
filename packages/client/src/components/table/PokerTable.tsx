@@ -28,6 +28,15 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   const [showLastHand, setShowLastHand] = useState(false);
   const myHoleCards = useGameStore((s) => s.myHoleCards);
 
+  // Safety: if players array is empty or invalid, show nothing
+  if (!players || players.length === 0) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center bg-gray-900">
+        <p className="text-gray-400">Loading table...</p>
+      </div>
+    );
+  }
+
   /** Emit player action via WebSocket */
   const handleAction = useCallback((action: PlayerAction) => {
     const socket = getSocket();
