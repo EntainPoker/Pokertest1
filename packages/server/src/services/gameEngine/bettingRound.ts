@@ -78,8 +78,10 @@ export class BettingRound {
 
   /**
    * Records a player action, updating their hasActed flag and bet amounts.
+   * For all-in actions, pass the player's new currentBet as allInBet to properly
+   * track the bet amount (since PlayerAction for all_in has no amount field).
    */
-  recordAction(playerIndex: number, action: PlayerAction): void {
+  recordAction(playerIndex: number, action: PlayerAction, allInBet?: number): void {
     const player = this.players[playerIndex];
     if (!player) {
       return;
@@ -120,6 +122,10 @@ export class BettingRound {
         break;
 
       case 'all_in':
+        // Use the provided allInBet or fall back to internal currentBet
+        if (allInBet !== undefined) {
+          player.currentBet = allInBet;
+        }
         player.status = 'all_in';
         if (player.currentBet > this.currentBet) {
           // All-in acts as a raise
