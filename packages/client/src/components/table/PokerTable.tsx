@@ -49,16 +49,18 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   // Rearrange players so current player is always at bottom-center
   const myIndex = players.findIndex(p => p.playerId === currentPlayerId);
   const getPositionedIndex = (visualPosition: number): number => {
-    if (myIndex === -1) return visualPosition;
+    if (myIndex === -1 || players.length === 0) return visualPosition % Math.max(1, players.length);
     return (myIndex + visualPosition) % players.length;
   };
 
   // For a 3-player game: position 0 = me (bottom), 1 = top-left, 2 = top-right
   // For a 2-player game: position 0 = me (bottom), 1 = top-center
+  const myPositionIndex = getPositionedIndex(0);
   const opponentIndices = players.length === 2
     ? [getPositionedIndex(1)]
-    : [getPositionedIndex(1), getPositionedIndex(2)];
-  const myPositionIndex = getPositionedIndex(0);
+    : players.length >= 3
+      ? [getPositionedIndex(1), getPositionedIndex(2)]
+      : [];
 
   return (
     <div className="w-full h-screen max-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black flex items-center justify-center p-2 sm:p-4 relative overflow-hidden">
