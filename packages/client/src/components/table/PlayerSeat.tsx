@@ -1,4 +1,4 @@
-import type { HandPlayer } from '@spin-and-go/shared';
+import type { HandPlayer, Card as CardType } from '@spin-and-go/shared';
 import { Card } from '../shared/Card';
 import { ChipStack } from '../shared/ChipStack';
 
@@ -7,6 +7,8 @@ interface PlayerSeatProps {
   isActive: boolean;
   isDealer: boolean;
   showCards: boolean;
+  /** Hole cards to display (passed from parent for the current player) */
+  holeCards?: CardType[];
 }
 
 /**
@@ -15,7 +17,7 @@ interface PlayerSeatProps {
  * Highlights the active player whose turn it is.
  * Satisfies Requirements 6.1, 6.2, 6.5, 6.8.
  */
-export function PlayerSeat({ player, isActive, isDealer, showCards }: PlayerSeatProps) {
+export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = [] }: PlayerSeatProps) {
   const isFolded = player.status === 'folded';
   const isAllIn = player.status === 'all_in';
 
