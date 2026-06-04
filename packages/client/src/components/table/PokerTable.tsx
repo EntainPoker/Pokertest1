@@ -30,6 +30,12 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   const [showLastHand, setShowLastHand] = useState(false);
   const myHoleCards = useGameStore((s) => s.myHoleCards);
 
+  /** Emit player action via WebSocket */
+  const handleAction = useCallback((action: PlayerAction) => {
+    const socket = getSocket();
+    socket.emit('game:action', { gameId, playerId: currentPlayerId, action });
+  }, [gameId, currentPlayerId]);
+
   // Safety: if players array is empty or invalid, show loading state
   if (!players || players.length === 0) {
     return (
@@ -38,12 +44,6 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
       </div>
     );
   }
-
-  /** Emit player action via WebSocket */
-  const handleAction = useCallback((action: PlayerAction) => {
-    const socket = getSocket();
-    socket.emit('game:action', { gameId, playerId: currentPlayerId, action });
-  }, [gameId, currentPlayerId]);
 
   /** Get the hole cards to display for a given player index */
   const getHoleCards = (index: number): CardType[] => {
