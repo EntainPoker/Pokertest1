@@ -16,9 +16,8 @@ interface ActionPanelProps {
 }
 
 /**
- * Player action panel displaying valid actions based on game state.
- * Shows Check, Bet, Call, Raise, Fold, and All-In buttons as appropriate.
- * Includes bet/raise amount input with slider and +/- buttons.
+ * Premium player action panel with preset raise buttons, large action buttons,
+ * slider for custom amounts, and a timer countdown bar.
  * Only visible when it's the current player's turn.
  * All buttons have minimum 44x44px touch targets.
  * Satisfies Requirements 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 7.10, 13.2.
@@ -47,7 +46,6 @@ export function ActionPanel({
     const hasOutstandingBet = currentBet > myPlayer.currentBet;
     const amountToCall = currentBet - myPlayer.currentBet;
     const canAffordCall = myPlayer.chipCount >= amountToCall;
-    const bigBlind = handState.players.length > 0 ? minRaise : 20; // fallback
 
     return {
       check: !hasOutstandingBet,
@@ -63,12 +61,10 @@ export function ActionPanel({
   const betMin = useMemo(() => {
     if (!myPlayer) return 0;
     if (validActions.bet) {
-      // Minimum bet is the big blind
       const bigBlind = handState.minRaise || 20;
       return bigBlind;
     }
     if (validActions.raise) {
-      // Minimum raise: current bet + min raise increment
       return currentBet + minRaise;
     }
     return 0;
@@ -130,27 +126,70 @@ export function ActionPanel({
 
   const showAmountInput = validActions.bet || validActions.raise;
 
+  // Preset raise amounts
+  const presets = useMemo(() => {
+    const base = validActions.raise ? currentBet : 0;
+    const min = minRaise || 20;
+    return [
+      { label: 'Min', amount: betMin },
+      { label: '2x', amount: Math.min(base + min * 2, betMax) },
+      { label: '3x', amount: Math.min(base + min * 3, betMax) },
+      { label: 'Pot', amount: Math.min(handState.pot + currentBet * 2, betMax) },
+      { label: 'All-In', amount: betMax },
+    ];
+  }, [betMin, betMax, currentBet, minRaise, handState.pot, validActions.raise]);
+
+  // Timer progress (percentage remaining)
+  const timerMax = 30; // default max seconds
+  const timerProgress = Math.max(0, Math.min(100, (turnTimeRemaining / timerMax) * 100));
+
   return (
-    <div className="w-full max-w-lg mx-auto px-2 sm:px-4 py-3 sm:py-4 bg-poker-dark/95 rounded-xl border border-gray-600 shadow-xl">
-      {/* Turn timer */}
-      <div className="flex items-center justify-center gap-2 mb-3">
-        <span className="text-xs sm:text-sm text-gray-400">Your turn</span>
-        <Timer
-          seconds={turnTimeRemaining}
-          onExpire={onTurnExpire}
-          className="text-lg sm:text-xl"
-        />
+    <div className="w-full max-w-2xl mx-auto px-3 sm:px-5 py-4 sm:py-5 bg-gray-900/95 backdrop-blur-md rounded-t-2xl border-t border-x border-gray-700/50 shadow-2xl">
+      {/* Timer countdown bar */}
+      <div className="mb-3">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-xs sm:text-sm font-bold text-poker-gold uppercase tracking-wide">Your Turn</span>
+          <Timer
+            seconds={turnTimeRemaining}
+            onExpire={onTurnExpire}
+            className="text-base sm:text-lg font-bold"
+          />
+        </div>
+        <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-poker-gold to-amber-500 rounded-full transition-all duration-1000 ease-linear"
+            style={{ width: `${timerProgress}%` }}
+          />
+        </div>
       </div>
 
       {/* Bet/Raise amount input */}
       {showAmountInput && (
-        <div className="mb-3 px-1 sm:px-2">
+        <div className="mb-4">
+          {/* Preset raise pills */}
+          <div className="flex gap-1.5 sm:gap-2 mb-3 overflow-x-auto pb-1">
+            {presets.map((preset) => (
+              <button
+                key={preset.label}
+                type="button"
+                onClick={() => setBetAmount(preset.amount)}
+                className={`min-w-[44px] min-h-[44px] px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
+                  betAmount === preset.amount
+                    ? 'bg-poker-gold/20 border-poker-gold/60 text-poker-gold border'
+                    : 'bg-gray-800 border border-gray-700 text-gray-300 hover:border-gray-500 hover:text-white'
+                }`}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+
           <div className="flex items-center gap-2 mb-2">
             {/* Minus button */}
             <button
               type="button"
               onClick={() => adjustBet(-minRaise)}
-              className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-lg bg-gray-700 hover:bg-gray-600 active:bg-gray-500 text-gray-100 font-bold text-lg transition-colors"
+              className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-xl bg-gray-800 border border-gray-700 hover:bg-gray-700 hover:border-gray-600 active:bg-gray-600 text-gray-100 font-bold text-lg transition-all"
               aria-label="Decrease bet amount"
             >
               −
@@ -169,7 +208,7 @@ export function ActionPanel({
                 }}
                 min={betMin}
                 max={betMax}
-                className="w-full min-h-[44px] text-center text-lg sm:text-xl font-bold bg-gray-800 border border-gray-600 rounded-lg text-gray-100 px-2 py-2 focus:outline-none focus:border-poker-gold"
+                className="w-full min-h-[44px] text-center text-lg sm:text-xl font-bold bg-gray-800 border border-gray-600 rounded-xl text-poker-gold px-2 py-2 focus:outline-none focus:border-poker-gold focus:ring-1 focus:ring-poker-gold/30 transition-all"
                 aria-label="Bet amount"
               />
             </div>
@@ -178,7 +217,7 @@ export function ActionPanel({
             <button
               type="button"
               onClick={() => adjustBet(minRaise)}
-              className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-lg bg-gray-700 hover:bg-gray-600 active:bg-gray-500 text-gray-100 font-bold text-lg transition-colors"
+              className="min-w-[44px] min-h-[44px] w-11 h-11 flex items-center justify-center rounded-xl bg-gray-800 border border-gray-700 hover:bg-gray-700 hover:border-gray-600 active:bg-gray-600 text-gray-100 font-bold text-lg transition-all"
               aria-label="Increase bet amount"
             >
               +
@@ -192,37 +231,27 @@ export function ActionPanel({
             max={betMax}
             value={betAmount}
             onChange={(e) => setBetAmount(parseInt(e.target.value, 10))}
-            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-poker-gold"
+            className="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-poker-gold"
             aria-label="Bet amount slider"
           />
 
           {/* Min/Max labels */}
-          <div className="flex justify-between text-[10px] sm:text-xs text-gray-400 mt-1">
-            <span>Min: {betMin}</span>
-            <span>Max: {betMax}</span>
+          <div className="flex justify-between text-[10px] sm:text-xs text-gray-500 mt-1.5">
+            <span>Min: ${betMin}</span>
+            <span>Max: ${betMax}</span>
           </div>
         </div>
       )}
 
       {/* Action buttons */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
         {validActions.check && (
           <button
             type="button"
             onClick={handleCheck}
-            className="min-w-[44px] min-h-[44px] px-3 py-3 rounded-lg bg-green-700 hover:bg-green-600 active:bg-green-500 text-white font-semibold text-sm sm:text-base transition-colors shadow-md"
+            className="min-w-[44px] min-h-[44px] px-4 py-3.5 rounded-xl bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 active:from-green-700 active:to-green-800 text-white font-bold text-sm sm:text-base transition-all shadow-lg shadow-green-700/30"
           >
             Check
-          </button>
-        )}
-
-        {validActions.bet && (
-          <button
-            type="button"
-            onClick={handleBet}
-            className="min-w-[44px] min-h-[44px] px-3 py-3 rounded-lg bg-blue-700 hover:bg-blue-600 active:bg-blue-500 text-white font-semibold text-sm sm:text-base transition-colors shadow-md"
-          >
-            Bet {betAmount}
           </button>
         )}
 
@@ -230,9 +259,19 @@ export function ActionPanel({
           <button
             type="button"
             onClick={handleCall}
-            className="min-w-[44px] min-h-[44px] px-3 py-3 rounded-lg bg-green-700 hover:bg-green-600 active:bg-green-500 text-white font-semibold text-sm sm:text-base transition-colors shadow-md"
+            className="min-w-[44px] min-h-[44px] px-4 py-3.5 rounded-xl bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 active:from-green-700 active:to-green-800 text-white font-bold text-sm sm:text-base transition-all shadow-lg shadow-green-700/30"
           >
-            Call {callAmount}
+            Call ${callAmount}
+          </button>
+        )}
+
+        {validActions.bet && (
+          <button
+            type="button"
+            onClick={handleBet}
+            className="min-w-[44px] min-h-[44px] px-4 py-3.5 rounded-xl bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 active:from-blue-700 active:to-blue-800 text-white font-bold text-sm sm:text-base transition-all shadow-lg shadow-blue-700/30"
+          >
+            Bet ${betAmount}
           </button>
         )}
 
@@ -240,9 +279,9 @@ export function ActionPanel({
           <button
             type="button"
             onClick={handleRaise}
-            className="min-w-[44px] min-h-[44px] px-3 py-3 rounded-lg bg-blue-700 hover:bg-blue-600 active:bg-blue-500 text-white font-semibold text-sm sm:text-base transition-colors shadow-md"
+            className="min-w-[44px] min-h-[44px] px-4 py-3.5 rounded-xl bg-gradient-to-b from-poker-gold to-amber-600 hover:from-yellow-400 hover:to-amber-500 active:from-amber-600 active:to-amber-700 text-gray-900 font-bold text-sm sm:text-base transition-all shadow-lg shadow-poker-gold/30"
           >
-            Raise {betAmount}
+            Raise ${betAmount}
           </button>
         )}
 
@@ -250,9 +289,9 @@ export function ActionPanel({
           <button
             type="button"
             onClick={handleAllIn}
-            className="min-w-[44px] min-h-[44px] px-3 py-3 rounded-lg bg-yellow-600 hover:bg-yellow-500 active:bg-yellow-400 text-white font-semibold text-sm sm:text-base transition-colors shadow-md"
+            className="min-w-[44px] min-h-[44px] px-4 py-3.5 rounded-xl bg-gradient-to-b from-amber-500 to-red-600 hover:from-amber-400 hover:to-red-500 active:from-amber-600 active:to-red-700 text-white font-bold text-sm sm:text-base transition-all shadow-lg shadow-red-600/30 animate-pulse"
           >
-            All-In ({myPlayer.chipCount})
+            All-In ${myPlayer.chipCount}
           </button>
         )}
 
@@ -260,7 +299,7 @@ export function ActionPanel({
           <button
             type="button"
             onClick={handleFold}
-            className="min-w-[44px] min-h-[44px] px-3 py-3 rounded-lg bg-red-700 hover:bg-red-600 active:bg-red-500 text-white font-semibold text-sm sm:text-base transition-colors shadow-md"
+            className="min-w-[44px] min-h-[44px] px-4 py-3 rounded-xl bg-gray-800 border border-red-500/40 hover:bg-red-900/30 hover:border-red-500/60 active:bg-red-900/50 text-red-400 font-semibold text-sm sm:text-base transition-all"
           >
             Fold
           </button>
