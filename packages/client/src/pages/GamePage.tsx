@@ -100,7 +100,9 @@ export function GamePage() {
             handState: hs,
             tournament: t,
             gameStatus: 'playing',
-            myHoleCards: hs.players.find((p: any) => p.playerId === currentPlayerId)?.holeCards ?? [],
+            myHoleCards: useGameStore.getState().myHoleCards.length > 0
+              ? useGameStore.getState().myHoleCards
+              : (hs.players.find((p: any) => p.playerId === currentPlayerId)?.holeCards ?? []),
             isMyTurn: hs.players[hs.currentPlayerIndex]?.playerId === currentPlayerId,
             turnTimeRemaining: hs.turnTimeoutSeconds,
           });
