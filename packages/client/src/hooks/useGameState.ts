@@ -96,24 +96,43 @@ export function useGameState() {
 
     // --- game:state ---
     const handleGameState = (payload: GameStatePayload) => {
-      if (!payload || !payload.handState) return;
-      
+      // Validate payload before updating state — reject invalid data to prevent crashes
+      if (
+        !payload ||
+        !payload.handState ||
+        !payload.handState.players ||
+        payload.handState.players.length === 0
+      ) {
+        return;
+      }
+
       const { handState, tournament } = payload;
+
+      // Additional safety: ensure currentPlayerIndex is within bounds
+      const safeCurrentPlayerIndex =
+        handState.currentPlayerIndex >= 0 && handState.currentPlayerIndex < handState.players.length
+          ? handState.currentPlayerIndex
+          : 0;
+
+      const sanitizedHandState = {
+        ...handState,
+        currentPlayerIndex: safeCurrentPlayerIndex,
+      };
 
       // Preserve existing hole cards (game:state sends sanitized state without cards)
       const existingHoleCards = useGameStore.getState().myHoleCards;
 
       // Determine if it's our turn
       const currentTurnPlayer =
-        handState.players[handState.currentPlayerIndex];
+        sanitizedHandState.players[sanitizedHandState.currentPlayerIndex];
       const isMyTurn = currentTurnPlayer?.playerId === currentPlayerId;
 
       useGameStore.setState({
-        handState,
+        handState: sanitizedHandState,
         tournament,
         myHoleCards: existingHoleCards,
         isMyTurn,
-        turnTimeRemaining: handState.turnTimeoutSeconds,
+        turnTimeRemaining: sanitizedHandState.turnTimeoutSeconds,
       });
     };
 
