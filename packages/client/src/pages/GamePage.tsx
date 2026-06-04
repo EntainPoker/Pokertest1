@@ -268,7 +268,7 @@ export function GamePage() {
       </nav>
 
       {/* Poker table */}
-      <main className="flex-1 flex items-center justify-center p-4">
+      <main className="flex-1 min-h-0 flex items-stretch">
         <ErrorBoundary>
           <PokerTable
             handState={displayHandState}
