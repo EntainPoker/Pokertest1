@@ -81,6 +81,12 @@ io.on('connection', (socket) => {
       currentPlayerId = playerId;
       playerConnections.set(playerId, { socketId: socket.id, gameInstanceId: gameId });
     }
+
+    // If a game state exists for this game, send it to the joining player
+    const existingState = activeGameStates.get(gameId);
+    if (existingState) {
+      socket.emit('game:start', existingState);
+    }
   });
 
   // Handle game:resync — re-emit current state if available
