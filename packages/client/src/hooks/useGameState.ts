@@ -124,15 +124,25 @@ export function useGameState() {
         return;
       }
 
-      const { handState, tournament } = payload;
+      // NUCLEAR FIX: JSON roundtrip strips ALL non-serializable objects (Date, functions, etc.)
+      // This guarantees only strings, numbers, booleans, arrays, and null reach the React render tree.
+      let sanitizedPayload: GameStatePayload;
+      try {
+        sanitizedPayload = JSON.parse(JSON.stringify(payload));
+      } catch {
+        return; // If serialization fails, skip this update
+      }
 
-      // Additional safety: ensure currentPlayerIndex is within bounds
+      const { handState, tournament } = sanitizedPayload;
+
+      // Ensure currentPlayerIndex is within bounds
       const safeCurrentPlayerIndex =
         handState.currentPlayerIndex >= 0 && handState.currentPlayerIndex < handState.players.length
           ? handState.currentPlayerIndex
           : 0;
 
-      // Sanitize handState to prevent rendering objects as React children (Error #300).
+      handState.currentPlayerIndex = safeCurrentPlayerIndex;
+      handState.lastAction = null; // Never store action objects
       // lastAction is a PlayerAction object, turnStartedAt can be a Date — both unsafe for JSX.
       const sanitizedHandState = {
         ...handState,
