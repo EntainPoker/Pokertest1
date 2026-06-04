@@ -31,6 +31,7 @@ interface PokerTableProps {
 export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaining = 30 }: PokerTableProps) {
   const { players, communityCards, pot, sidePots, dealerPosition, currentPlayerIndex } = handState;
   const [showLastHand, setShowLastHand] = useState(false);
+  const myHoleCards = useGameStore((s) => s.myHoleCards);
 
   /** Emit player action via WebSocket */
   const handleAction = useCallback((action: PlayerAction) => {
@@ -39,6 +40,16 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   }, [gameId, currentPlayerId]);
 
   const getPlayer = (index: number) => players[index] ?? null;
+
+  /** Get the hole cards to display for a given player index */
+  const getHoleCards = (index: number): CardType[] => {
+    const player = players[index];
+    if (!player) return [];
+    if (player.playerId === currentPlayerId) {
+      return myHoleCards;
+    }
+    return [];
+  };
 
   return (
     <div className="w-full max-w-4xl mx-auto aspect-[4/3] sm:aspect-[16/10] relative">
