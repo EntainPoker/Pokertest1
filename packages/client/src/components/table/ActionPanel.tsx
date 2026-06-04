@@ -16,10 +16,9 @@ interface ActionPanelProps {
 }
 
 /**
- * Compact mobile-first action panel — GGPoker-style.
- * Single row of action buttons at bottom, raise presets as horizontal scroll above.
+ * Ultra-compact mobile action panel — slider + 3 buttons in one row.
+ * No presets, no +/- buttons, no timer display. ~80px max height.
  * Only visible when it's the current player's turn.
- * All buttons have minimum 44x44px touch targets.
  * Satisfies Requirements 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 7.10, 13.2.
  */
 export function ActionPanel({
@@ -143,157 +142,65 @@ export function ActionPanel({
     return null;
   }
 
+  // Determine which buttons to show — always 3 columns
+  // Left: Fold (or Check/Fold if can check)
+  // Middle: Check or Call
+  // Right: Bet or Raise (with slider amount)
+  const leftLabel = validActions.check ? 'Check/Fold' : 'Fold';
+  const middleLabel = validActions.call ? `Call $${callAmount}` : 'Check';
+  const rightLabel = validActions.raise
+    ? `Raise $${betAmount}`
+    : validActions.bet
+    ? `Bet $${betAmount}`
+    : `All-In $${myPlayer.chipCount}`;
+
+  const handleLeft = validActions.check ? handleFold : handleFold;
+  const handleMiddle = validActions.call ? handleCall : handleCheck;
+  const handleRight = validActions.raise
+    ? handleRaise
+    : validActions.bet
+    ? handleBet
+    : handleAllIn;
+
   return (
-    <div className="w-full max-w-lg mx-auto px-3 py-3 bg-gray-900/98 backdrop-blur-md rounded-t-2xl border-t border-x border-gray-700/50 shadow-2xl">
-      {/* Timer countdown bar */}
-      <div className="mb-2">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-bold text-poker-gold">Your turn</span>
-          <Timer
-            seconds={turnTimeRemaining}
-            onExpire={onTurnExpire}
-            className="text-sm font-bold"
-          />
-        </div>
-        <div className="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-poker-gold to-amber-500 rounded-full transition-all duration-1000 ease-linear"
-            style={{ width: `${timerProgress}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Bet/Raise amount input — condensed */}
+    <div className="shrink-0 bg-gray-900 px-2 py-2 border-t border-gray-700">
+      {/* Slider row — only show if bet/raise available */}
       {showAmountInput && (
-        <div className="mb-2">
-          {/* Preset raise pills — horizontal scrollable row */}
-          <div className="flex gap-1.5 mb-2 overflow-x-auto pb-1 scrollbar-none">
-            {presets.map((preset) => (
-              <button
-                key={preset.label}
-                type="button"
-                onClick={() => setBetAmount(preset.amount)}
-                className={`min-w-[44px] min-h-[44px] px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
-                  betAmount === preset.amount
-                    ? 'bg-poker-gold/20 border-poker-gold/60 text-poker-gold border'
-                    : 'bg-gray-800 border border-gray-700 text-gray-300 hover:border-gray-500'
-                }`}
-              >
-                {preset.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Compact slider + amount row */}
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => adjustBet(-minRaise)}
-              className="min-w-[44px] min-h-[44px] w-9 h-9 flex items-center justify-center rounded-lg bg-gray-800 border border-gray-700 text-gray-100 font-bold text-sm transition-all"
-              aria-label="Decrease bet amount"
-            >
-              −
-            </button>
-
-            <div className="flex-1 flex flex-col gap-1">
-              <input
-                type="number"
-                value={betAmount}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value, 10);
-                  if (!isNaN(val)) {
-                    setBetAmount(Math.max(betMin, Math.min(betMax, val)));
-                  }
-                }}
-                min={betMin}
-                max={betMax}
-                className="w-full min-h-[44px] text-center text-base font-bold bg-gray-800 border border-gray-600 rounded-lg text-poker-gold px-2 py-1.5 focus:outline-none focus:border-poker-gold transition-all"
-                aria-label="Bet amount"
-              />
-              <input
-                type="range"
-                min={betMin}
-                max={betMax}
-                value={betAmount}
-                onChange={(e) => setBetAmount(parseInt(e.target.value, 10))}
-                className="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-poker-gold"
-                aria-label="Bet amount slider"
-              />
-            </div>
-
-            <button
-              type="button"
-              onClick={() => adjustBet(minRaise)}
-              className="min-w-[44px] min-h-[44px] w-9 h-9 flex items-center justify-center rounded-lg bg-gray-800 border border-gray-700 text-gray-100 font-bold text-sm transition-all"
-              aria-label="Increase bet amount"
-            >
-              +
-            </button>
-          </div>
-        </div>
+        <input
+          type="range"
+          min={betMin}
+          max={betMax}
+          value={betAmount}
+          onChange={(e) => setBetAmount(parseInt(e.target.value, 10))}
+          className="w-full h-1 mb-1 bg-gray-700 rounded appearance-none cursor-pointer accent-poker-gold"
+          aria-label="Bet amount slider"
+        />
       )}
-
-      {/* Action buttons — single row */}
-      <div className="flex gap-2">
-        {validActions.fold && (
-          <button
-            type="button"
-            onClick={handleFold}
-            className="min-w-[44px] min-h-[44px] flex-1 px-3 py-3 rounded-xl bg-gray-800 border border-red-500/40 hover:bg-red-900/30 text-red-400 font-semibold text-sm transition-all"
-          >
-            Fold
-          </button>
-        )}
-
-        {validActions.check && (
-          <button
-            type="button"
-            onClick={handleCheck}
-            className="min-w-[44px] min-h-[44px] flex-1 px-3 py-3 rounded-xl bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-bold text-sm transition-all shadow-md"
-          >
-            Check
-          </button>
-        )}
-
-        {validActions.call && (
-          <button
-            type="button"
-            onClick={handleCall}
-            className="min-w-[44px] min-h-[44px] flex-1 px-3 py-3 rounded-xl bg-gradient-to-b from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-bold text-sm transition-all shadow-md"
-          >
-            {`Call $${callAmount}`}
-          </button>
-        )}
-
-        {validActions.bet && (
-          <button
-            type="button"
-            onClick={handleBet}
-            className="min-w-[44px] min-h-[44px] flex-1 px-3 py-3 rounded-xl bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold text-sm transition-all shadow-md"
-          >
-            {`Bet $${betAmount}`}
-          </button>
-        )}
-
-        {validActions.raise && (
-          <button
-            type="button"
-            onClick={handleRaise}
-            className="min-w-[44px] min-h-[44px] flex-1 px-3 py-3 rounded-xl bg-gradient-to-b from-poker-gold to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-gray-900 font-bold text-sm transition-all shadow-md"
-          >
-            {`Raise $${betAmount}`}
-          </button>
-        )}
-
-        {validActions.allIn && (
-          <button
-            type="button"
-            onClick={handleAllIn}
-            className="min-w-[44px] min-h-[44px] flex-1 px-3 py-3 rounded-xl bg-gradient-to-b from-amber-500 to-red-600 hover:from-amber-400 hover:to-red-500 text-white font-bold text-sm transition-all shadow-md animate-pulse"
-          >
-            {`All-In $${myPlayer.chipCount}`}
-          </button>
-        )}
+      {/* Button row: 3 buttons, equal width */}
+      <div className="flex gap-1">
+        <button
+          type="button"
+          onClick={handleLeft}
+          className="flex-1 min-h-[40px] h-10 rounded-lg bg-gray-800 border border-gray-600 text-gray-200 font-semibold text-xs transition-all active:bg-gray-700"
+        >
+          {leftLabel}
+        </button>
+        <button
+          type="button"
+          onClick={handleMiddle}
+          disabled={!validActions.check && !validActions.call}
+          className="flex-1 min-h-[40px] h-10 rounded-lg bg-gradient-to-b from-green-600 to-green-700 text-white font-bold text-xs transition-all active:from-green-500 active:to-green-600 disabled:opacity-40"
+        >
+          {middleLabel}
+        </button>
+        <button
+          type="button"
+          onClick={handleRight}
+          disabled={!validActions.bet && !validActions.raise && !validActions.allIn}
+          className="flex-1 min-h-[40px] h-10 rounded-lg bg-gradient-to-b from-blue-600 to-blue-700 text-white font-bold text-xs transition-all active:from-blue-500 active:to-blue-600 disabled:opacity-40"
+        >
+          {rightLabel}
+        </button>
       </div>
     </div>
   );
