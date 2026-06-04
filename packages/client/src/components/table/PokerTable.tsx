@@ -18,8 +18,10 @@ interface PokerTableProps {
 
 /**
  * Main poker table layout with premium oval felt design.
- * Current player always at bottom-center, opponents arranged around top.
- * Wood-tone border with dark green felt surface.
+ * Players are rendered by their raw array index:
+ *   - 2 players: player[0] at top, player[1] at bottom
+ *   - 3 players: player[0] at top, player[1] bottom-left, player[2] bottom-right
+ * Current player's cards show face-up based on playerId match.
  *
  * Satisfies Requirements 6.1, 6.2, 6.3, 6.5, 6.6, 6.7, 6.8, 13.1.
  */
@@ -28,7 +30,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   const [showLastHand, setShowLastHand] = useState(false);
   const myHoleCards = useGameStore((s) => s.myHoleCards);
 
-  // Safety: if players array is empty or invalid, show nothing
+  // Safety: if players array is empty or invalid, show loading state
   if (!players || players.length === 0) {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-gray-900">
@@ -43,8 +45,6 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
     socket.emit('game:action', { gameId, playerId: currentPlayerId, action });
   }, [gameId, currentPlayerId]);
 
-  const getPlayer = (index: number) => players[index] ?? null;
-
   /** Get the hole cards to display for a given player index */
   const getHoleCards = (index: number): CardType[] => {
     const player = players[index];
@@ -55,21 +55,24 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
     return [];
   };
 
-  // Rearrange players so current player is always at bottom-center
-  const myIndex = players.findIndex(p => p.playerId === currentPlayerId);
-  const getPositionedIndex = (visualPosition: number): number => {
-    if (myIndex === -1 || players.length === 0) return visualPosition % Math.max(1, players.length);
-    return (myIndex + visualPosition) % players.length;
+  /** Check if a player's cards should be shown face-up */
+  const shouldShowCards = (index: number): boolean => {
+    const player = players[index];
+    if (!player) return false;
+    return player.playerId === currentPlayerId;
   };
 
-  // For a 3-player game: position 0 = me (bottom), 1 = top-left, 2 = top-right
-  // For a 2-player game: position 0 = me (bottom), 1 = top-center
-  const myPositionIndex = getPositionedIndex(0);
-  const opponentIndices = players.length === 2
-    ? [getPositionedIndex(1)]
-    : players.length >= 3
-      ? [getPositionedIndex(1), getPositionedIndex(2)]
-      : [];
+  // Simple index-based layout: separate top opponents from bottom (current) player
+  // Find which index is the current player for bottom positioning
+  const myIndex = players.findIndex(p => p.playerId === currentPlayerId);
+
+  // Top row: all players except the current player
+  const topIndices = players
+    .map((_, idx) => idx)
+    .filter(idx => idx !== myIndex);
+
+  // Bottom player: the current player (or fallback to last player if not found)
+  const bottomIndex = myIndex >= 0 ? myIndex : players.length - 1;
 
   return (
     <div className="w-full h-screen max-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black flex items-center justify-center p-2 sm:p-4 relative overflow-hidden">
@@ -111,9 +114,9 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
         {/* Table content */}
         <div className="relative w-full h-full flex flex-col items-center justify-between p-4 sm:p-8 md:p-10 z-10">
           {/* Top players (opponents) */}
-          <div className={`flex ${players.length === 2 ? 'justify-center' : 'justify-between'} w-full px-4 sm:px-8`}>
-            {opponentIndices.map((idx) => {
-              const p = getPlayer(idx);
+          <div className={`flex ${topIndices.length === 1 ? 'justify-center' : 'justify-between'} w-full px-4 sm:px-8`}>
+            {topIndices.map((idx) => {
+              const p = players[idx];
               if (!p) return null;
               return (
                 <PlayerSeat
@@ -121,7 +124,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
                   player={p}
                   isActive={currentPlayerIndex === idx}
                   isDealer={dealerPosition === idx}
-                  showCards={p.playerId === currentPlayerId}
+                  showCards={shouldShowCards(idx)}
                   holeCards={getHoleCards(idx)}
                 />
               );
@@ -134,15 +137,15 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
             <CommunityCards cards={communityCards} />
           </div>
 
-          {/* Bottom player (current player — always me) */}
+          {/* Bottom player (current player) */}
           <div className="flex justify-center w-full pb-40 sm:pb-48">
-            {getPlayer(myPositionIndex) && (
+            {players[bottomIndex] && (
               <PlayerSeat
-                player={getPlayer(myPositionIndex)!}
-                isActive={currentPlayerIndex === myPositionIndex}
-                isDealer={dealerPosition === myPositionIndex}
+                player={players[bottomIndex]}
+                isActive={currentPlayerIndex === bottomIndex}
+                isDealer={dealerPosition === bottomIndex}
                 showCards={true}
-                holeCards={getHoleCards(myPositionIndex)}
+                holeCards={getHoleCards(bottomIndex)}
               />
             )}
           </div>
