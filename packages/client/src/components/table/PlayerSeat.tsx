@@ -62,8 +62,8 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
 
       {/* Hole cards */}
       <div className="flex gap-0.5 mt-1">
-        {showCards && player.holeCards.length > 0
-          ? player.holeCards.map((card, i) => (
+        {showCards && holeCards.length > 0
+          ? holeCards.map((card, i) => (
               <Card key={i} rank={card.rank} suit={card.suit} />
             ))
           : !isFolded && (
