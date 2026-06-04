@@ -130,16 +130,35 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
         <div className="h-2" />
       </div>
 
-      {/* MIDDLE ZONE — Current player's cards and info */}
-      <div className="flex items-center justify-center gap-4 px-4 py-3 bg-gray-900 pb-52 sm:pb-56">
+      {/* MIDDLE ZONE — Current player's cards and info, HORIZONTAL layout */}
+      <div className="flex items-center justify-center gap-3 px-4 py-2 bg-gray-900">
         {players[bottomIndex] && (
-          <PlayerSeat
-            player={players[bottomIndex]}
-            isActive={currentPlayerIndex === bottomIndex}
-            isDealer={dealerPosition === bottomIndex}
-            showCards={true}
-            holeCards={getHoleCards(bottomIndex)}
-          />
+          <div className="flex items-center gap-3">
+            {/* Avatar + name + chips */}
+            <div className="flex flex-col items-center gap-0.5">
+              {dealerPosition === bottomIndex && (
+                <span className="w-5 h-5 rounded-full bg-white text-gray-900 text-[9px] font-black flex items-center justify-center shadow-md border-2 border-gray-300">D</span>
+              )}
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-white font-bold text-base shadow-md bg-gradient-to-br from-blue-500 to-blue-700 ${currentPlayerIndex === bottomIndex ? 'ring-[3px] ring-poker-gold animate-pulse' : 'ring-2 ring-gray-600/50'}`}>
+                {players[bottomIndex].username.charAt(0).toUpperCase()}
+              </div>
+              <span className="text-[10px] text-gray-300 font-medium">{players[bottomIndex].username}</span>
+              <span className="text-[10px] text-poker-gold font-bold">${players[bottomIndex].chipCount}</span>
+            </div>
+            {/* Cards — displayed horizontally next to avatar */}
+            <div className="flex gap-1">
+              {getHoleCards(bottomIndex).length > 0
+                ? getHoleCards(bottomIndex).map((card, i) => (
+                    <Card key={i} rank={card.rank} suit={card.suit} />
+                  ))
+                : !players[bottomIndex].status?.includes('folded') && (
+                    <>
+                      <Card faceDown />
+                      <Card faceDown />
+                    </>
+                  )}
+            </div>
+          </div>
         )}
       </div>
 
