@@ -14,9 +14,9 @@ const SUIT_SYMBOLS: Record<CardType['suit'], string> = {
   clubs: '♣',
 };
 
-/** Suit color mapping: red for hearts/diamonds, black (white text on dark bg) for clubs/spades */
+/** Suit color mapping: red for hearts/diamonds, dark for clubs/spades */
 function getSuitColor(suit: CardType['suit']): string {
-  return suit === 'hearts' || suit === 'diamonds' ? 'text-red-500' : 'text-gray-100';
+  return suit === 'hearts' || suit === 'diamonds' ? 'text-red-500' : 'text-gray-900';
 }
 
 /**
