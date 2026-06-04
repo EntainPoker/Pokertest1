@@ -163,6 +163,9 @@ export function checkAndStartTournament(gameInstanceId: string): void {
 
     // Also emit to the game room in case players joined via room
     io.to(`game:${gameInstanceId}`).emit('game:start', gameState);
+
+    // Start the game loop to begin dealing hands
+    startGameLoop(gameInstanceId);
   }, 1000);
 
   // 6. Emit 'lobby:update' for both the started game and the new game
