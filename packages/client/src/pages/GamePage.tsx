@@ -230,9 +230,9 @@ export function GamePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
+    <div className="h-screen max-h-[100dvh] bg-gray-900 flex flex-col overflow-hidden">
       {/* Game header */}
-      <nav className="bg-gray-800 border-b border-gray-700 px-4 py-2">
+      <nav className="shrink-0 bg-gray-800 border-b border-gray-700 px-4 py-2">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <button
             type="button"
