@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react';
-import type { HandState, PlayerAction } from '@spin-and-go/shared';
+import type { HandState, PlayerAction, Card as CardType } from '@spin-and-go/shared';
 import { PlayerSeat } from './PlayerSeat';
 import { CommunityCards } from './CommunityCards';
 import { PotDisplay } from './PotDisplay';
 import { ActionPanel } from './ActionPanel';
 import { LastHandSummary } from '../history/LastHandSummary';
 import { getSocket } from '../../services/socket';
+import { useGameStore } from '../../stores/gameStore';
 
 interface PokerTableProps {
   handState: HandState;
