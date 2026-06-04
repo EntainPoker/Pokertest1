@@ -119,14 +119,9 @@ export function ActionPanel({
     [betMin, betMax]
   );
 
-  // Don't render if it's not the player's turn
-  if (!isMyTurn || !myPlayer || myPlayer.status !== 'active') {
-    return null;
-  }
-
   const showAmountInput = validActions.bet || validActions.raise;
 
-  // Preset raise amounts
+  // Preset raise amounts (must be above early return to respect hooks rule)
   const presets = useMemo(() => {
     const base = validActions.raise ? currentBet : 0;
     const min = minRaise || 20;
@@ -140,8 +135,13 @@ export function ActionPanel({
   }, [betMin, betMax, currentBet, minRaise, handState.pot, validActions.raise]);
 
   // Timer progress (percentage remaining)
-  const timerMax = 30; // default max seconds
+  const timerMax = 30;
   const timerProgress = Math.max(0, Math.min(100, (turnTimeRemaining / timerMax) * 100));
+
+  // Don't render if it's not the player's turn
+  if (!isMyTurn || !myPlayer || myPlayer.status !== 'active') {
+    return null;
+  }
 
   return (
     <div className="w-full max-w-2xl mx-auto px-3 sm:px-5 py-4 sm:py-5 bg-gray-900/95 backdrop-blur-md rounded-t-2xl border-t border-x border-gray-700/50 shadow-2xl">
