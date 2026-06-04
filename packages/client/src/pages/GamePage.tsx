@@ -256,7 +256,7 @@ export function GamePage() {
       {/* Poker table */}
       <main className="flex-1 flex items-center justify-center p-4">
         <PokerTable
-          handState={handState}
+          handState={displayHandState}
           currentPlayerId={currentPlayerId}
           gameId={gameId}
           turnTimeRemaining={turnTimeRemaining}
