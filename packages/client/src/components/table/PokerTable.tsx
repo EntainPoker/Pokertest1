@@ -82,7 +82,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
 
   return (
     <div className="w-full h-full bg-gray-950 flex flex-col overflow-hidden">
-      {/* Last Hand button — fixed position top-left */}
+      {/* Last Hand button */}
       {gameId && (
         <button
           onClick={() => setShowLastHand(true)}
@@ -98,8 +98,8 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
         <LastHandSummary gameId={gameId} onClose={() => setShowLastHand(false)} />
       )}
 
-      {/* TOP ZONE — Green felt table area (takes remaining space) */}
-      <div className="flex-1 min-h-0 flex flex-col items-center justify-between px-2 pt-8 pb-2 bg-gradient-to-b from-green-900 via-emerald-900 to-green-950 rounded-b-2xl relative">
+      {/* GREEN TABLE — max 55% of height */}
+      <div className="h-[45%] sm:h-[55%] shrink-0 flex flex-col items-center justify-between px-2 pt-6 pb-2 bg-gradient-to-b from-green-900 via-emerald-900 to-green-950 rounded-b-2xl relative">
         {/* Opponents row */}
         <div className={`relative z-10 flex ${topIndices.length === 1 ? 'justify-center' : 'justify-center gap-3 sm:gap-8'} w-full`}>
           {topIndices.map((idx) => {
@@ -119,31 +119,28 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
         </div>
 
         {/* Center area: pot + community cards */}
-        <div className="relative z-10 flex flex-col items-center gap-1.5">
+        <div className="relative z-10 flex flex-col items-center gap-1">
           <PotDisplay amount={safePot} sidePots={safeSidePots} />
           <CommunityCards cards={communityCards} />
         </div>
 
-        {/* Spacer */}
         <div className="h-1" />
       </div>
 
-      {/* MIDDLE ZONE — Current player's cards and info (fixed height, never overlapped) */}
-      <div className="shrink-0 flex items-center justify-center gap-3 px-3 py-1.5 bg-gray-900 border-t border-gray-800">
+      {/* MY CARDS — guaranteed visible, horizontal layout */}
+      <div className="shrink-0 flex items-center justify-center gap-2 px-3 py-2 bg-gray-900 border-t border-gray-800">
         {players[bottomIndex] && (
           <div className="flex items-center gap-2">
-            {/* Avatar + name + chips */}
-            <div className="flex flex-col items-center gap-0.5">
+            <div className="flex flex-col items-center">
               {dealerPosition === bottomIndex && (
-                <span className="w-4 h-4 rounded-full bg-white text-gray-900 text-[8px] font-black flex items-center justify-center shadow-sm border border-gray-300">D</span>
+                <span className="w-4 h-4 rounded-full bg-white text-gray-900 text-[8px] font-black flex items-center justify-center shadow-sm border border-gray-300 mb-0.5">D</span>
               )}
-              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md bg-gradient-to-br from-blue-500 to-blue-700 ${currentPlayerIndex === bottomIndex ? 'ring-2 ring-poker-gold' : 'ring-1 ring-gray-600/50'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-md bg-gradient-to-br from-blue-500 to-blue-700 ${currentPlayerIndex === bottomIndex ? 'ring-2 ring-poker-gold' : 'ring-1 ring-gray-600/50'}`}>
                 {players[bottomIndex].username.charAt(0).toUpperCase()}
               </div>
-              <span className="text-[9px] text-gray-400 font-medium">{players[bottomIndex].username}</span>
+              <span className="text-[8px] text-gray-400">{players[bottomIndex].username}</span>
               <span className="text-[9px] text-poker-gold font-bold">${players[bottomIndex].chipCount}</span>
             </div>
-            {/* Cards — displayed horizontally next to avatar */}
             <div className="flex gap-0.5">
               {getHoleCards(bottomIndex).length > 0
                 ? getHoleCards(bottomIndex).map((card, i) => (
@@ -160,7 +157,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
         )}
       </div>
 
-      {/* BOTTOM ZONE — Action Panel (shrink-0 = fixed height, never grows) */}
+      {/* ACTION PANEL — takes remaining space at bottom */}
       <div className="shrink-0 w-full">
         <ActionPanel
           handState={handState}
