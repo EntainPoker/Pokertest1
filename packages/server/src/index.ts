@@ -66,7 +66,8 @@ const PORT = process.env.PORT || 4000;
 // Socket.IO connection handling
 import { playerConnections } from './services/tournamentService.js';
 import { activeGameStates } from './services/gameStateStore.js';
-import type { GameState } from '@spin-and-go/shared';
+import { handlePlayerAction } from './services/gameEngine/gameLoop.js';
+import type { GameState, PlayerAction } from '@spin-and-go/shared';
 
 io.on('connection', (socket) => {
   let currentPlayerId: string | null = null;
