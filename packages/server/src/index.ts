@@ -109,9 +109,9 @@ io.on('connection', (socket) => {
   });
 
   // Handle game:action — player submits an action
-  socket.on('game:action', (data: { gameId: string; playerId: string; action: any }) => {
-    // Forward action to game engine (to be wired up with full game loop)
-    io.to(`game:${data.gameId}`).emit('game:action:received', data);
+  socket.on('game:action', (data: { gameId: string; playerId: string; action: PlayerAction }) => {
+    // Route action to the game loop engine
+    handlePlayerAction(data.gameId, data.playerId, data.action);
   });
 
   // Handle disconnect
