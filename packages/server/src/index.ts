@@ -99,17 +99,24 @@ io.on('connection', (socket) => {
     // If a game state exists for this game, send it to the joining player
     const existingState = activeGameStates.get(gameId);
     if (existingState) {
-      socket.emit('game:start', existingState);
-      
-      // Also send their hole cards if a hand is active
+      // Send personalized state with this player's hole cards included
       if (playerId) {
         const holeCards = getPlayerHoleCards(gameId, playerId);
-        if (holeCards && holeCards.length > 0) {
-          socket.emit('game:deal', {
-            holeCards,
-            communityCards: existingState.handState.communityCards,
-          });
-        }
+        const personalizedState = {
+          ...existingState,
+          handState: {
+            ...existingState.handState,
+            players: existingState.handState.players.map(p => ({
+              ...p,
+              holeCards: p.playerId === playerId && holeCards ? holeCards : [],
+            })),
+          },
+        };
+        socket.emit('game:start', personalizedState);
+      } else {
+        socket.emit('game:start', existingState);
+      }
+    }
       }
     }
   });
