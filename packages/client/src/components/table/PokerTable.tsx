@@ -30,6 +30,10 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   const [showLastHand, setShowLastHand] = useState(false);
   const myHoleCards = useGameStore((s) => s.myHoleCards);
 
+  // Ensure pot is always a number (never an object) to prevent React Error #300
+  const safePot = typeof pot === 'number' && !isNaN(pot) ? pot : 0;
+  const safeSidePots = Array.isArray(sidePots) ? sidePots : [];
+
   /** Emit player action via WebSocket */
   const handleAction = useCallback((action: PlayerAction) => {
     const socket = getSocket();
@@ -133,7 +137,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
 
           {/* Center area: pot + community cards */}
           <div className="flex flex-col items-center gap-3 sm:gap-4">
-            <PotDisplay amount={pot} sidePots={sidePots} />
+            <PotDisplay amount={safePot} sidePots={safeSidePots} />
             <CommunityCards cards={communityCards} />
           </div>
 

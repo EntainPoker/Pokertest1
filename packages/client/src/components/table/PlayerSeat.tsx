@@ -82,11 +82,11 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
       )}
 
       {/* Current bet shown toward center */}
-      {player.currentBet > 0 && (
+      {typeof player.currentBet === 'number' && player.currentBet > 0 && (
         <div className="absolute -bottom-5 left-1/2 -translate-x-1/2">
           <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs text-poker-gold font-bold bg-gray-900/90 rounded-full px-2.5 py-1 border border-poker-gold/30 shadow-md">
             <span className="w-2 h-2 rounded-full bg-gradient-to-br from-poker-gold to-amber-600" aria-hidden="true" />
-            ${player.currentBet}
+            ${Number(player.currentBet)}
           </span>
         </div>
       )}

@@ -63,13 +63,31 @@ export function useGameState() {
         handState.players[handState.currentPlayerIndex];
       const isMyTurn = currentTurnPlayer?.playerId === currentPlayerId;
 
+      // Sanitize handState to prevent rendering objects as React children (Error #300).
+      // The server may send lastAction as an object ({type, amount}) and turnStartedAt
+      // as a Date — neither is safe to pass into React's render tree.
+      const sanitizedHandState = {
+        ...handState,
+        lastAction: null,
+        turnStartedAt: typeof handState.turnStartedAt === 'string'
+          ? handState.turnStartedAt
+          : String(handState.turnStartedAt ?? ''),
+        pot: typeof handState.pot === 'number' ? handState.pot : Number(handState.pot) || 0,
+        sidePots: Array.isArray(handState.sidePots)
+          ? handState.sidePots.map(sp => ({
+              amount: typeof sp.amount === 'number' ? sp.amount : 0,
+              eligiblePlayerIds: Array.isArray(sp.eligiblePlayerIds) ? sp.eligiblePlayerIds : [],
+            }))
+          : [],
+      };
+
       useGameStore.setState({
-        handState,
+        handState: sanitizedHandState,
         tournament,
         gameStatus: 'playing',
         myHoleCards,
         isMyTurn,
-        turnTimeRemaining: handState.turnTimeoutSeconds,
+        turnTimeRemaining: sanitizedHandState.turnTimeoutSeconds,
         tournamentResult: null,
       });
     };
@@ -114,13 +132,22 @@ export function useGameState() {
           ? handState.currentPlayerIndex
           : 0;
 
-      // Sanitize handState to prevent rendering objects as React children
+      // Sanitize handState to prevent rendering objects as React children (Error #300).
+      // lastAction is a PlayerAction object, turnStartedAt can be a Date — both unsafe for JSX.
       const sanitizedHandState = {
         ...handState,
         currentPlayerIndex: safeCurrentPlayerIndex,
         lastAction: null, // Never render action objects
+        turnStartedAt: typeof handState.turnStartedAt === 'string'
+          ? handState.turnStartedAt
+          : String(handState.turnStartedAt ?? ''),
         pot: typeof handState.pot === 'number' ? handState.pot : 0,
-        sidePots: Array.isArray(handState.sidePots) ? handState.sidePots : [],
+        sidePots: Array.isArray(handState.sidePots)
+          ? handState.sidePots.map(sp => ({
+              amount: typeof sp.amount === 'number' ? sp.amount : 0,
+              eligiblePlayerIds: Array.isArray(sp.eligiblePlayerIds) ? sp.eligiblePlayerIds : [],
+            }))
+          : [],
       };
 
       // Preserve existing hole cards (game:state sends sanitized state without cards)
