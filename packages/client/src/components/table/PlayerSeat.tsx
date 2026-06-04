@@ -12,9 +12,9 @@ interface PlayerSeatProps {
 }
 
 /**
- * Player seat component showing username, chip count, current bet,
+ * Player seat component showing circular avatar, username, chip count,
  * active/folded state, and hole cards when visible.
- * Highlights the active player whose turn it is.
+ * Status indicators: green ring for active, red for folded, gold pulsing for current turn.
  * Satisfies Requirements 6.1, 6.2, 6.5, 6.8.
  */
 export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = [] }: PlayerSeatProps) {
@@ -48,13 +48,15 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
         </span>
       )}
 
-      {/* Avatar circle */}
+      {/* Avatar circle with status ring */}
       <div
-        className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg bg-gradient-to-br ${avatarGradient} ${
+        className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-white font-bold text-xl sm:text-2xl shadow-lg bg-gradient-to-br ${avatarGradient} ${
           isActive
-            ? 'ring-[3px] ring-poker-gold shadow-poker-gold/40 shadow-xl'
+            ? 'ring-[3px] ring-poker-gold shadow-poker-gold/50 shadow-xl animate-pulse'
+            : isFolded
+            ? 'ring-2 ring-red-500/50'
             : 'ring-2 ring-gray-600/50'
-        } ${isAllIn ? 'ring-[3px] ring-red-500 animate-pulse' : ''}`}
+        } ${isAllIn ? 'ring-[3px] ring-red-500' : ''}`}
       >
         {isFolded ? (
           <span className="text-gray-300 line-through">{firstLetter}</span>
@@ -73,17 +75,17 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
 
       {/* Status badges */}
       {isFolded && (
-        <span className="text-[10px] sm:text-xs text-red-400 font-semibold bg-red-400/10 rounded-full px-2 py-0.5">Folded</span>
+        <span className="text-[10px] sm:text-xs text-red-400 font-semibold bg-red-400/10 rounded-full px-2.5 py-0.5 border border-red-400/20">Folded</span>
       )}
       {isAllIn && (
-        <span className="text-[10px] sm:text-xs text-amber-300 font-semibold bg-amber-400/10 rounded-full px-2 py-0.5 animate-pulse">All-In</span>
+        <span className="text-[10px] sm:text-xs text-amber-300 font-semibold bg-amber-400/10 rounded-full px-2.5 py-0.5 border border-amber-400/30 animate-pulse">All-In</span>
       )}
 
       {/* Current bet shown toward center */}
       {player.currentBet > 0 && (
-        <div className="absolute -bottom-4 left-1/2 -translate-x-1/2">
-          <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs text-poker-gold font-bold bg-gray-900/80 rounded-full px-2 py-0.5 border border-poker-gold/30">
-            <span className="w-2 h-2 rounded-full bg-poker-gold" aria-hidden="true" />
+        <div className="absolute -bottom-5 left-1/2 -translate-x-1/2">
+          <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs text-poker-gold font-bold bg-gray-900/90 rounded-full px-2.5 py-1 border border-poker-gold/30 shadow-md">
+            <span className="w-2 h-2 rounded-full bg-gradient-to-br from-poker-gold to-amber-600" aria-hidden="true" />
             ${player.currentBet}
           </span>
         </div>
