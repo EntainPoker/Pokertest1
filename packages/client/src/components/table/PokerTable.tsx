@@ -17,7 +17,8 @@ interface PokerTableProps {
 }
 
 /**
- * Main poker table layout with premium oval felt design.
+ * Main poker table layout — GGPoker-style mobile-first design.
+ * Three vertical zones: table (top), player cards (middle), actions (bottom).
  * Players are rendered by their raw array index:
  *   - 2 players: player[0] at top, player[1] at bottom
  *   - 3 players: player[0] at top, player[1] bottom-left, player[2] bottom-right
@@ -79,16 +80,12 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   const bottomIndex = myIndex >= 0 ? myIndex : players.length - 1;
 
   return (
-    <div className="w-full h-screen max-h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-black flex items-center justify-center p-2 sm:p-4 relative overflow-hidden">
-      {/* Ambient lighting effects */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-poker-gold/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-green-900/20 rounded-full blur-3xl pointer-events-none" />
-
+    <div className="w-full h-screen max-h-screen bg-gray-950 flex flex-col relative overflow-hidden">
       {/* Last Hand button — fixed position top-left */}
       {gameId && (
         <button
           onClick={() => setShowLastHand(true)}
-          className="absolute top-3 left-3 z-20 min-w-[44px] min-h-[44px] px-4 py-2.5 rounded-xl bg-gray-800/90 border border-gray-700/50 text-gray-300 text-xs sm:text-sm font-medium hover:bg-gray-700 hover:text-white hover:border-gray-600 transition-all shadow-lg backdrop-blur-sm"
+          className="absolute top-3 left-3 z-20 min-w-[44px] min-h-[44px] px-3 py-2 rounded-lg bg-gray-800/90 border border-gray-700/50 text-gray-300 text-xs font-medium hover:bg-gray-700 hover:text-white transition-all shadow-md"
           aria-label="View last hand history"
         >
           Last Hand
@@ -100,63 +97,53 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
         <LastHandSummary gameId={gameId} onClose={() => setShowLastHand(false)} />
       )}
 
-      {/* Table container */}
-      <div className="w-full max-w-4xl aspect-[4/3] sm:aspect-[16/10] relative">
-        {/* Table wood-grain border */}
-        <div className="absolute inset-0 rounded-[3rem] sm:rounded-[4rem] bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 shadow-2xl shadow-black/60 p-2.5 sm:p-3.5">
-          {/* Table felt */}
-          <div className="w-full h-full rounded-[2.5rem] sm:rounded-[3.5rem] bg-gradient-to-br from-poker-felt via-green-900 to-poker-felt border-2 border-green-800/40 shadow-inner overflow-hidden relative">
-            {/* Inner rail highlight */}
-            <div className="absolute inset-3 sm:inset-5 rounded-[2rem] sm:rounded-[3rem] border border-green-700/25" />
-            {/* Subtle center glow */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-green-600/10 to-transparent pointer-events-none" />
-            {/* Table edge shadow */}
-            <div className="absolute inset-0 rounded-[2.5rem] sm:rounded-[3.5rem] shadow-[inset_0_4px_20px_rgba(0,0,0,0.4)]" />
-          </div>
-        </div>
+      {/* TOP ZONE — Green felt table area */}
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-between px-3 pt-10 pb-3 bg-gradient-to-b from-green-900 via-emerald-900 to-green-950 rounded-b-3xl relative">
+        {/* Subtle inner glow */}
+        <div className="absolute inset-0 rounded-b-3xl bg-gradient-to-b from-green-800/20 via-transparent to-black/20 pointer-events-none" />
 
-        {/* Table content */}
-        <div className="relative w-full h-full flex flex-col items-center justify-between p-4 sm:p-8 md:p-10 z-10">
-          {/* Top players (opponents) */}
-          <div className={`flex ${topIndices.length === 1 ? 'justify-center' : 'justify-between'} w-full px-4 sm:px-8`}>
-            {topIndices.map((idx) => {
-              const p = players[idx];
-              if (!p) return null;
-              return (
-                <PlayerSeat
-                  key={p.playerId}
-                  player={p}
-                  isActive={currentPlayerIndex === idx}
-                  isDealer={dealerPosition === idx}
-                  showCards={shouldShowCards(idx)}
-                  holeCards={getHoleCards(idx)}
-                />
-              );
-            })}
-          </div>
-
-          {/* Center area: pot + community cards */}
-          <div className="flex flex-col items-center gap-3 sm:gap-4">
-            <PotDisplay amount={safePot} sidePots={safeSidePots} />
-            <CommunityCards cards={communityCards} />
-          </div>
-
-          {/* Bottom player (current player) */}
-          <div className="flex justify-center w-full pb-40 sm:pb-48">
-            {players[bottomIndex] && (
+        {/* Opponents row */}
+        <div className={`relative z-10 flex ${topIndices.length === 1 ? 'justify-center' : 'justify-center gap-4 sm:gap-8'} w-full`}>
+          {topIndices.map((idx) => {
+            const p = players[idx];
+            if (!p) return null;
+            return (
               <PlayerSeat
-                player={players[bottomIndex]}
-                isActive={currentPlayerIndex === bottomIndex}
-                isDealer={dealerPosition === bottomIndex}
-                showCards={true}
-                holeCards={getHoleCards(bottomIndex)}
+                key={p.playerId}
+                player={p}
+                isActive={currentPlayerIndex === idx}
+                isDealer={dealerPosition === idx}
+                showCards={shouldShowCards(idx)}
+                holeCards={getHoleCards(idx)}
               />
-            )}
-          </div>
+            );
+          })}
         </div>
+
+        {/* Center area: pot + community cards */}
+        <div className="relative z-10 flex flex-col items-center gap-2 sm:gap-3">
+          <PotDisplay amount={safePot} sidePots={safeSidePots} />
+          <CommunityCards cards={communityCards} />
+        </div>
+
+        {/* Spacer to push content up */}
+        <div className="h-2" />
       </div>
 
-      {/* Action Panel — fixed at bottom of viewport, outside the table */}
+      {/* MIDDLE ZONE — Current player's cards and info */}
+      <div className="flex items-center justify-center gap-4 px-4 py-3 bg-gray-900 pb-36 sm:pb-44">
+        {players[bottomIndex] && (
+          <PlayerSeat
+            player={players[bottomIndex]}
+            isActive={currentPlayerIndex === bottomIndex}
+            isDealer={dealerPosition === bottomIndex}
+            showCards={true}
+            holeCards={getHoleCards(bottomIndex)}
+          />
+        )}
+      </div>
+
+      {/* Action Panel — fixed at bottom of viewport */}
       <div className="fixed bottom-0 left-0 right-0 z-50">
         <ActionPanel
           handState={handState}
