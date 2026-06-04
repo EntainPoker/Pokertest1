@@ -231,9 +231,9 @@ export function GamePage() {
 
           <div className="flex items-center gap-3">
             {/* Blind timer */}
-            {tournament && (
+            {tournament && tournament.blindSchedule && tournament.blindSchedule.length > 0 && (
               <BlindTimer
-                currentLevel={tournament.blindSchedule[tournament.currentBlindLevel - 1] ?? tournament.blindSchedule[0]}
+                currentLevel={tournament.blindSchedule[Math.max(0, tournament.currentBlindLevel - 1)] ?? tournament.blindSchedule[0]}
                 nextLevel={tournament.blindSchedule[tournament.currentBlindLevel] ?? null}
                 timeRemaining={turnTimeRemaining}
               />
