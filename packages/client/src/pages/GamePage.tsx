@@ -69,8 +69,20 @@ export function GamePage() {
 
   // Join the game room on mount
   useEffect(() => {
-    if (gameId) {
-      socket.emit('game:join', { gameId, playerId: currentPlayerId });
+    if (gameId && currentPlayerId) {
+      const joinGame = () => {
+        socket.emit('game:join', { gameId, playerId: currentPlayerId });
+      };
+
+      if (socket.connected) {
+        joinGame();
+      } else {
+        socket.once('connect', joinGame);
+      }
+
+      return () => {
+        socket.off('connect', joinGame);
+      };
     }
   }, [socket, gameId, currentPlayerId]);
 
