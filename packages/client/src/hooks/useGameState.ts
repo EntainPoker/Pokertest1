@@ -92,11 +92,8 @@ export function useGameState() {
     const handleGameState = (payload: GameStatePayload) => {
       const { handState, tournament } = payload;
 
-      // Extract current player's hole cards (privacy)
-      const myPlayer = handState.players.find(
-        (p) => p.playerId === currentPlayerId,
-      );
-      const myHoleCards = myPlayer?.holeCards ?? [];
+      // Preserve existing hole cards (game:state sends sanitized state without cards)
+      const existingHoleCards = useGameStore.getState().myHoleCards;
 
       // Determine if it's our turn
       const currentTurnPlayer =
@@ -106,7 +103,7 @@ export function useGameState() {
       useGameStore.setState({
         handState,
         tournament,
-        myHoleCards,
+        myHoleCards: existingHoleCards,
         isMyTurn,
         turnTimeRemaining: handState.turnTimeoutSeconds,
       });
