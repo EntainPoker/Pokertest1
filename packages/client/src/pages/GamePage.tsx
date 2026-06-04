@@ -93,16 +93,14 @@ export function GamePage() {
 
     const pollInterval = setInterval(async () => {
       try {
-        const data = await apiFetch<{ state: any }>(`/api/game/${gameId}/state`);
+        const data = await apiFetch<{ state: any }>(`/api/game/${gameId}/state?playerId=${currentPlayerId}`);
         if (data.state && !useGameStore.getState().handState) {
           const { handState: hs, tournament: t } = data.state;
           useGameStore.setState({
             handState: hs,
             tournament: t,
             gameStatus: 'playing',
-            myHoleCards: useGameStore.getState().myHoleCards.length > 0
-              ? useGameStore.getState().myHoleCards
-              : (hs.players.find((p: any) => p.playerId === currentPlayerId)?.holeCards ?? []),
+            myHoleCards: hs.players.find((p: any) => p.playerId === currentPlayerId)?.holeCards ?? useGameStore.getState().myHoleCards,
             isMyTurn: hs.players[hs.currentPlayerIndex]?.playerId === currentPlayerId,
             turnTimeRemaining: hs.turnTimeoutSeconds,
           });
