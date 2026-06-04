@@ -70,9 +70,9 @@ export function GamePage() {
   // Join the game room on mount
   useEffect(() => {
     if (gameId) {
-      socket.emit('game:join' as any, { gameId });
+      socket.emit('game:join', { gameId, playerId: currentPlayerId });
     }
-  }, [socket, gameId]);
+  }, [socket, gameId, currentPlayerId]);
 
   const handleBackToLobby = useCallback(() => {
     useGameStore.getState().reset();

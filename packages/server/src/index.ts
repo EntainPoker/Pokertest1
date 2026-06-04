@@ -52,6 +52,56 @@ app.get('*', (_req, res) => {
 
 const PORT = process.env.PORT || 4000;
 
+// Socket.IO connection handling
+import { playerConnections } from './services/tournamentService.js';
+
+io.on('connection', (socket) => {
+  let currentPlayerId: string | null = null;
+  let currentGameId: string | null = null;
+
+  // Handle lobby subscription
+  socket.on('lobby:subscribe', () => {
+    socket.join('lobby');
+  });
+
+  socket.on('lobby:unsubscribe', () => {
+    socket.leave('lobby');
+  });
+
+  // Handle game join — track player connection and join room
+  socket.on('game:join', (data: { gameId: string; playerId?: string }) => {
+    const { gameId, playerId } = data;
+    currentGameId = gameId;
+
+    // Join the game room
+    socket.join(`game:${gameId}`);
+
+    // Track player connection if playerId provided
+    if (playerId) {
+      currentPlayerId = playerId;
+      playerConnections.set(playerId, { socketId: socket.id, gameInstanceId: gameId });
+    }
+  });
+
+  // Handle game:resync — re-emit current state if available
+  socket.on('game:resync', (data: { gameId: string }) => {
+    socket.join(`game:${data.gameId}`);
+  });
+
+  // Handle game:action — player submits an action
+  socket.on('game:action', (data: { gameId: string; playerId: string; action: any }) => {
+    // Forward action to game engine (to be wired up with full game loop)
+    io.to(`game:${data.gameId}`).emit('game:action:received', data);
+  });
+
+  // Handle disconnect
+  socket.on('disconnect', () => {
+    if (currentPlayerId) {
+      playerConnections.delete(currentPlayerId);
+    }
+  });
+});
+
 httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });

@@ -22,15 +22,13 @@ export const playerConnections = new Map<string, { socketId: string; gameInstanc
  * 5. Emit 'game:start' WebSocket event to all registered players within 5 seconds
  * 6. Emit 'lobby:update' for both the started game and the new game
  */
-export async function checkAndStartTournament(gameInstanceId: string): Promise<void> {
+export function checkAndStartTournament(gameInstanceId: string): void {
   // Check if game is now full
-  const gameResult = await query(
-    `SELECT gi.id, gi.name, gi.max_players, gi.buy_in, gi.starting_chips,
-            gi.blind_interval_minutes, gi.status, gi.end_date, gi.created_by,
-            COUNT(gr.player_id)::int AS player_count
+  const gameResult = query(
+    `SELECT gi.*, COUNT(gr.player_id) AS player_count
      FROM game_instances gi
      LEFT JOIN game_registrations gr ON gi.id = gr.game_instance_id
-     WHERE gi.id = $1
+     WHERE gi.id = ?
      GROUP BY gi.id`,
     [gameInstanceId]
   );
@@ -38,16 +36,17 @@ export async function checkAndStartTournament(gameInstanceId: string): Promise<v
   if (gameResult.rows.length === 0) return;
 
   const game = gameResult.rows[0];
+  const maxPlayers = game.max_players as number;
 
   // Only start if the game has reached max players
-  if (game.player_count < game.max_players) return;
+  if ((game.player_count as number) < maxPlayers) return;
 
   // Get registered players
-  const playersResult = await query(
+  const playersResult = query(
     `SELECT gr.player_id, p.username
      FROM game_registrations gr
      JOIN players p ON gr.player_id = p.id
-     WHERE gr.game_instance_id = $1
+     WHERE gr.game_instance_id = ?
      ORDER BY gr.registered_at ASC`,
     [gameInstanceId]
   );
@@ -55,49 +54,47 @@ export async function checkAndStartTournament(gameInstanceId: string): Promise<v
   const registeredPlayers = playersResult.rows;
 
   // Use a transaction to create the tournament and spawn a new game instance
-  const { tournamentId, newGameId } = await transaction(async (client) => {
+  const { tournamentId, newGameId } = transaction((client) => {
     // 1. Update game_instances status to 'in_progress'
-    await client.query(
-      "UPDATE game_instances SET status = 'in_progress' WHERE id = $1",
+    client.query(
+      "UPDATE game_instances SET status = 'in_progress' WHERE id = ?",
       [gameInstanceId]
     );
 
     // 2. Insert into tournaments table
-    const prizePool = game.buy_in * game.max_players;
-    const tournamentInsert = await client.query(
-      `INSERT INTO tournaments (game_instance_id, current_blind_level, prize_pool, status, started_at)
-       VALUES ($1, 1, $2, 'active', NOW())
-       RETURNING id`,
-      [gameInstanceId, prizePool]
+    const prizePool = (game.buy_in as number) * maxPlayers;
+    const tId = crypto.randomUUID().replace(/-/g, '');
+    client.query(
+      `INSERT INTO tournaments (id, game_instance_id, current_blind_level, prize_pool, status, started_at)
+       VALUES (?, ?, 1, ?, 'active', datetime('now'))`,
+      [tId, gameInstanceId, prizePool]
     );
-    const tournamentId = tournamentInsert.rows[0].id;
 
     // 3. Insert into tournament_players for each registered player
     for (const player of registeredPlayers) {
-      await client.query(
-        `INSERT INTO tournament_players (tournament_id, player_id, chip_count, status)
-         VALUES ($1, $2, $3, 'active')`,
-        [tournamentId, player.player_id, game.starting_chips]
+      client.query(
+        `INSERT INTO tournament_players (id, tournament_id, player_id, chip_count, status)
+         VALUES (lower(hex(randomblob(16))), ?, ?, ?, 'active')`,
+        [tId, player.player_id, game.starting_chips]
       );
     }
 
     // 4. Spawn a new game instance of the same type with 0 players and 'open' status
-    const newGameInsert = await client.query(
-      `INSERT INTO game_instances (name, format, max_players, buy_in, starting_chips, blind_interval_minutes, status, created_at, end_date, created_by)
-       VALUES ($1, 'texas_holdem', $2, $3, $4, $5, 'open', NOW(), NOW() + INTERVAL '30 days', $6)
-       RETURNING id`,
-      [game.name, game.max_players, game.buy_in, game.starting_chips, game.blind_interval_minutes, game.created_by]
+    const newId = crypto.randomUUID().replace(/-/g, '');
+    client.query(
+      `INSERT INTO game_instances (id, name, format, max_players, buy_in, starting_chips, blind_interval_minutes, status, created_at, end_date)
+       VALUES (?, ?, 'texas_holdem', ?, ?, ?, ?, 'open', datetime('now'), datetime('now', '+30 days'))`,
+      [newId, game.name, maxPlayers, game.buy_in, game.starting_chips, game.blind_interval_minutes]
     );
-    const newGameId = newGameInsert.rows[0].id;
 
-    return { tournamentId, newGameId };
+    return { tournamentId: tId, newGameId: newId };
   });
 
-  // 5. Emit 'game:start' WebSocket event to all registered players within 5 seconds
-  const tournamentPlayers: TournamentPlayer[] = registeredPlayers.map((p) => ({
-    playerId: p.player_id,
-    username: p.username,
-    chipCount: game.starting_chips,
+  // 5. Build game state and emit 'game:start'
+  const tournamentPlayers: TournamentPlayer[] = registeredPlayers.map((p: any) => ({
+    playerId: p.player_id as string,
+    username: p.username as string,
+    chipCount: game.starting_chips as number,
     status: 'active' as const,
     finishPosition: null,
     eliminatedAt: null,
@@ -111,19 +108,18 @@ export async function checkAndStartTournament(gameInstanceId: string): Promise<v
     blindSchedule: BLIND_SCHEDULE,
     startedAt: new Date(),
     completedAt: null,
-    prizePool: game.buy_in * game.max_players,
+    prizePool: (game.buy_in as number) * maxPlayers,
     winnerId: null,
     status: 'active',
   };
 
-  // Create initial hand state placeholder (will be populated by game engine)
   const initialHandState: HandState = {
     id: '',
     tournamentId,
     handNumber: 0,
     dealerPosition: 0,
     smallBlindPosition: 1,
-    bigBlindPosition: 2,
+    bigBlindPosition: Math.min(2, registeredPlayers.length - 1),
     communityCards: [],
     pot: 0,
     sidePots: [],
@@ -154,7 +150,7 @@ export async function checkAndStartTournament(gameInstanceId: string): Promise<v
   // Emit game:start to all registered players within 5 seconds
   setTimeout(() => {
     for (const player of registeredPlayers) {
-      const connection = playerConnections.get(player.player_id);
+      const connection = playerConnections.get(player.player_id as string);
       if (connection) {
         io.to(connection.socketId).emit('game:start', gameState);
       }
@@ -162,10 +158,10 @@ export async function checkAndStartTournament(gameInstanceId: string): Promise<v
 
     // Also emit to the game room in case players joined via room
     io.to(`game:${gameInstanceId}`).emit('game:start', gameState);
-  }, 1000); // Emit after 1 second (well within the 5-second requirement)
+  }, 1000);
 
   // 6. Emit 'lobby:update' for both the started game and the new game
-  emitLobbyUpdate(gameInstanceId, game.max_players, 'in_progress');
+  emitLobbyUpdate(gameInstanceId, maxPlayers, 'in_progress');
   emitLobbyUpdate(newGameId, 0, 'open');
 }
 
@@ -174,10 +170,9 @@ export async function checkAndStartTournament(gameInstanceId: string): Promise<v
  * If the game has not started yet (status is 'open'), unregister the player,
  * refund their buy-in, and free the seat.
  */
-export async function handlePlayerDisconnect(playerId: string, gameInstanceId: string): Promise<void> {
-  // Check game status
-  const gameResult = await query(
-    `SELECT id, status, buy_in FROM game_instances WHERE id = $1`,
+export function handlePlayerDisconnect(playerId: string, gameInstanceId: string): void {
+  const gameResult = query(
+    `SELECT id, status, buy_in FROM game_instances WHERE id = ?`,
     [gameInstanceId]
   );
 
@@ -188,46 +183,38 @@ export async function handlePlayerDisconnect(playerId: string, gameInstanceId: s
   // Only handle disconnect for games that haven't started yet
   if (game.status !== 'open' && game.status !== 'full') return;
 
-  await transaction(async (client) => {
-    // Check if player is registered
-    const regResult = await client.query(
-      'SELECT id FROM game_registrations WHERE game_instance_id = $1 AND player_id = $2',
+  transaction((client) => {
+    const regResult = client.query(
+      'SELECT id FROM game_registrations WHERE game_instance_id = ? AND player_id = ?',
       [gameInstanceId, playerId]
     );
 
     if (regResult.rows.length === 0) return;
 
-    // Unregister player
-    await client.query(
-      'DELETE FROM game_registrations WHERE game_instance_id = $1 AND player_id = $2',
+    client.query(
+      'DELETE FROM game_registrations WHERE game_instance_id = ? AND player_id = ?',
       [gameInstanceId, playerId]
     );
 
-    // Refund buy-in
-    await client.query(
-      'UPDATE players SET balance = balance + $1 WHERE id = $2',
+    client.query(
+      'UPDATE players SET balance = balance + ? WHERE id = ?',
       [game.buy_in, playerId]
     );
 
-    // Update game status back to 'open' if it was 'full'
     if (game.status === 'full') {
-      await client.query(
-        "UPDATE game_instances SET status = 'open' WHERE id = $1",
+      client.query(
+        "UPDATE game_instances SET status = 'open' WHERE id = ?",
         [gameInstanceId]
       );
     }
   });
 
-  // Get updated player count
-  const countResult = await query(
-    'SELECT COUNT(*)::int AS count FROM game_registrations WHERE game_instance_id = $1',
+  const countResult = query(
+    'SELECT COUNT(*) AS count FROM game_registrations WHERE game_instance_id = ?',
     [gameInstanceId]
   );
-  const newCount = countResult.rows[0].count;
+  const newCount = countResult.rows[0].count as number;
 
-  // Emit lobby update
   emitLobbyUpdate(gameInstanceId, newCount, 'open');
-
-  // Remove player connection tracking
   playerConnections.delete(playerId);
 }
