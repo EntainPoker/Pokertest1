@@ -36,7 +36,7 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
 
   return (
     <div
-      className={`relative flex flex-col items-center gap-1 p-1.5 sm:p-2 rounded-xl transition-all ${
+      className={`relative flex flex-col items-center gap-0.5 p-1 sm:p-2 rounded-xl transition-all ${
         isFolded ? 'opacity-40' : ''
       }`}
       aria-label={`${player.username}${isActive ? ' (active)' : ''}${isFolded ? ' (folded)' : ''}${isAllIn ? ' (all-in)' : ''}`}
@@ -50,13 +50,13 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
 
       {/* Avatar circle with status ring */}
       <div
-        className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-md bg-gradient-to-br ${avatarGradient} ${
+        className={`relative w-7 h-7 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-base shadow-md bg-gradient-to-br ${avatarGradient} ${
           isActive
-            ? 'ring-[3px] ring-poker-gold shadow-poker-gold/50 shadow-lg animate-pulse'
+            ? 'ring-2 ring-poker-gold shadow-poker-gold/50 shadow-lg animate-pulse'
             : isFolded
-            ? 'ring-2 ring-red-500/50'
-            : 'ring-2 ring-gray-600/50'
-        } ${isAllIn ? 'ring-[3px] ring-red-500' : ''}`}
+            ? 'ring-1 ring-red-500/50'
+            : 'ring-1 ring-gray-600/50'
+        } ${isAllIn ? 'ring-2 ring-red-500' : ''}`}
       >
         {isFolded ? (
           <span className="text-gray-300 line-through">{firstLetter}</span>
@@ -66,7 +66,7 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
       </div>
 
       {/* Username */}
-      <span className="text-[10px] sm:text-xs font-semibold text-gray-100 truncate max-w-[70px] sm:max-w-[100px]">
+      <span className="text-[8px] sm:text-xs font-semibold text-gray-100 truncate max-w-[60px] sm:max-w-[100px]">
         {player.username}
       </span>
 
