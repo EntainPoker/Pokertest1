@@ -152,11 +152,11 @@ export function useGameState() {
       const isMyTurn = currentTurnPlayer?.playerId === currentPlayerId;
 
       useGameStore.setState({
-        handState: sanitizedHandState,
+        handState,
         tournament,
         myHoleCards: existingHoleCards,
         isMyTurn,
-        turnTimeRemaining: sanitizedHandState.turnTimeoutSeconds,
+        turnTimeRemaining: handState.turnTimeoutSeconds,
       });
     };
 
