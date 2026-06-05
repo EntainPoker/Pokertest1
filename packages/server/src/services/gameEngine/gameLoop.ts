@@ -169,6 +169,8 @@ export function handlePlayerAction(
   // Apply the updated player state
   handState.players[handState.currentPlayerIndex] = result.updatedPlayer!;
   handState.lastAction = result.processedAction!;
+  handState.lastActionText = getActionText(result.processedAction!);
+  handState.lastActionPlayerId = playerId;
 
   // Record the action for hand history
   instance.handActions.push({
@@ -545,26 +547,26 @@ function runOutBoard(gameInstanceId: string): void {
     handState.communityCards.push(...flopCards);
     emitCommunityCards();
 
-    // After 1 second, deal turn
+    // After 2500ms, deal turn
     setTimeout(() => {
       const gs = activeGameStates.get(gameInstanceId);
       if (!gs) return;
       gs.handState.communityCards.push(instance.deck.dealTurn());
       emitCommunityCards();
 
-      // After 1 second, deal river
+      // After 2500ms, deal river
       setTimeout(() => {
         const gs2 = activeGameStates.get(gameInstanceId);
         if (!gs2) return;
         gs2.handState.communityCards.push(instance.deck.dealRiver());
         emitCommunityCards();
 
-        // After 1 second, go to showdown
+        // After 2000ms, go to showdown
         setTimeout(() => {
           handleShowdown(gameInstanceId);
-        }, 1000);
-      }, 1000);
-    }, 1000);
+        }, 2000);
+      }, 2500);
+    }, 2500);
   } else if (handState.communityCards.length === 3) {
     // Deal turn
     handState.communityCards.push(instance.deck.dealTurn());
@@ -578,8 +580,8 @@ function runOutBoard(gameInstanceId: string): void {
 
       setTimeout(() => {
         handleShowdown(gameInstanceId);
-      }, 1000);
-    }, 1000);
+      }, 2000);
+    }, 2500);
   } else if (handState.communityCards.length === 4) {
     // Deal river
     handState.communityCards.push(instance.deck.dealRiver());
@@ -587,7 +589,7 @@ function runOutBoard(gameInstanceId: string): void {
 
     setTimeout(() => {
       handleShowdown(gameInstanceId);
-    }, 1000);
+    }, 2000);
   } else {
     // All cards already dealt
     handleShowdown(gameInstanceId);
@@ -676,10 +678,10 @@ function handleShowdown(gameInstanceId: string): void {
   persistState(gameInstanceId, gameState);
   emitGameState(gameInstanceId, gameState);
 
-  // Complete the hand after a short delay
+  // Complete the hand after a delay so players can see showdown
   setTimeout(() => {
     completeHand(gameInstanceId);
-  }, 3000);
+  }, 5000);
 }
 
 /**
@@ -705,10 +707,10 @@ function awardPotToLastPlayer(gameInstanceId: string, winner: HandPlayer): void 
   persistState(gameInstanceId, gameState);
   emitGameState(gameInstanceId, gameState);
 
-  // Complete the hand after a short delay
+  // Complete the hand after a delay so players see the result
   setTimeout(() => {
     completeHand(gameInstanceId);
-  }, 3000);
+  }, 4000);
 }
 
 // ============================================================
@@ -858,10 +860,10 @@ function completeHand(gameInstanceId: string): void {
 
   persistState(gameInstanceId, gameState);
 
-  // Start next hand after 4 seconds
+  // Start next hand after 5 seconds so players see final board
   setTimeout(() => {
     startNewHand(gameInstanceId);
-  }, 4000);
+  }, 5000);
 }
 
 // ============================================================

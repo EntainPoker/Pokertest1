@@ -83,6 +83,8 @@ export interface HandState {
   currentBet: number;
   minRaise: number;
   lastAction: PlayerAction | null;
+  lastActionText?: string | null;
+  lastActionPlayerId?: string | null;
   turnStartedAt: Date;
   turnTimeoutSeconds: number;
 }
