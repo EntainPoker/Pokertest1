@@ -13,7 +13,7 @@ import { runSQLiteMigrations } from './migrations/setup-sqlite.js';
 import { playerConnections } from './services/tournamentService.js';
 import { activeGameStates } from './services/gameStateStore.js';
 import { handlePlayerAction, getPlayerHoleCards } from './services/gameEngine/gameLoop.js';
-import type { GameState, PlayerAction } from '@spin-and-go/shared';
+import type { PlayerAction } from '@spin-and-go/shared';
 
 dotenv.config();
 
