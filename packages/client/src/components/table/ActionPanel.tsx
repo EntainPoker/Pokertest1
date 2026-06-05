@@ -160,10 +160,10 @@ export function ActionPanel({
     : handleAllIn;
 
   return (
-    <div className="shrink-0 bg-gray-900 px-2 pt-1 pb-[env(safe-area-inset-bottom,4px)] border-t border-gray-700">
+    <div className="shrink-0 bg-gray-900 px-2 pt-1.5 pb-[env(safe-area-inset-bottom,4px)] border-t border-gray-700">
       {/* Slider row — only show if bet/raise available */}
       {showAmountInput && (
-        <div className="flex items-center gap-2 mb-1">
+        <div className="flex items-center gap-2 mb-1.5">
           <span className="text-[10px] text-gray-400 shrink-0">${betMin}</span>
           <input
             type="range"
@@ -171,10 +171,10 @@ export function ActionPanel({
             max={betMax}
             value={betAmount}
             onChange={(e) => setBetAmount(parseInt(e.target.value, 10))}
-            className="flex-1 h-1.5 accent-poker-gold bg-gray-700 rounded appearance-none cursor-pointer"
+            className="flex-1 h-2 accent-poker-gold bg-gray-700 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-poker-gold [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:appearance-none"
             aria-label="Bet amount slider"
           />
-          <span className="text-[10px] text-poker-gold font-bold shrink-0">${betAmount}</span>
+          <span className="text-xs sm:text-sm text-poker-gold font-bold shrink-0">${betAmount}</span>
         </div>
       )}
       {/* Button row: 3 buttons, equal width */}
@@ -182,7 +182,7 @@ export function ActionPanel({
         <button
           type="button"
           onClick={handleLeft}
-          className="min-h-[40px] rounded-lg bg-gray-800 border border-gray-600 text-red-400 font-bold text-xs transition-all active:bg-gray-700"
+          className="min-h-[44px] sm:min-h-[48px] rounded-lg bg-gray-800 border border-gray-600 text-red-400 font-bold text-xs sm:text-sm transition-all active:bg-gray-700"
         >
           {leftLabel}
         </button>
@@ -190,7 +190,7 @@ export function ActionPanel({
           type="button"
           onClick={handleMiddle}
           disabled={!validActions.check && !validActions.call}
-          className="min-h-[40px] rounded-lg bg-gradient-to-b from-green-600 to-green-700 text-white font-bold text-xs transition-all active:from-green-500 active:to-green-600 disabled:opacity-40"
+          className="min-h-[44px] sm:min-h-[48px] rounded-lg bg-gradient-to-b from-green-600 to-green-700 text-white font-bold text-xs sm:text-sm transition-all active:from-green-500 active:to-green-600 disabled:opacity-40"
         >
           {middleLabel}
         </button>
@@ -198,7 +198,7 @@ export function ActionPanel({
           type="button"
           onClick={handleRight}
           disabled={!validActions.bet && !validActions.raise && !validActions.allIn}
-          className="min-h-[40px] rounded-lg bg-gradient-to-b from-amber-500 to-amber-600 text-gray-900 font-bold text-xs transition-all active:from-amber-400 active:to-amber-500 disabled:opacity-40"
+          className="min-h-[44px] sm:min-h-[48px] rounded-lg bg-gradient-to-b from-amber-500 to-amber-600 text-gray-900 font-bold text-xs sm:text-sm transition-all active:from-amber-400 active:to-amber-500 disabled:opacity-40"
         >
           {rightLabel}
         </button>

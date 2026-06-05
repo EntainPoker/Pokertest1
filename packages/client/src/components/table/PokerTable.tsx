@@ -140,61 +140,70 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
         <LastHandSummary gameId={gameId} onClose={() => setShowLastHand(false)} />
       )}
 
-      {/* ZONE 2: Table area — fills remaining space */}
-      <div className="flex-1 min-h-0 flex flex-col justify-between bg-gradient-to-b from-green-900 via-emerald-900 to-green-950 px-2 py-1">
-        {/* Top: Opponents */}
-        <div className={`flex ${topIndices.length === 1 ? 'justify-center' : 'justify-center gap-2'} w-full`}>
-          {topIndices.map((idx) => {
-            const p = players[idx];
-            if (!p) return null;
-            return (
-              <PlayerSeat
-                key={p.playerId}
-                player={p}
-                isActive={currentPlayerIndex === idx}
-                isDealer={dealerPosition === idx}
-                showCards={shouldShowCards(idx)}
-                holeCards={getHoleCards(idx)}
-              />
-            );
-          })}
-        </div>
+      {/* ZONE 2: Table area — fills remaining space, oval poker table */}
+      <div className="flex-1 min-h-0 flex flex-col justify-center items-center bg-gradient-to-b from-gray-800 via-stone-900 to-gray-950 px-2 py-1">
+        {/* Oval table surface */}
+        <div className="w-full max-w-lg flex-1 min-h-0 flex flex-col justify-between items-center rounded-[50%/40%] bg-gradient-to-br from-green-600 via-green-700 to-green-800 border-[5px] border-gray-900 shadow-2xl px-4 py-3 relative overflow-hidden">
+          {/* Subtle inner felt edge */}
+          <div className="absolute inset-2 rounded-[50%/40%] border border-green-500/20 pointer-events-none" />
 
-        {/* Middle: Pot + Community cards */}
-        <div className="flex flex-col items-center gap-1">
-          <PotDisplay amount={safePot} sidePots={safeSidePots} />
-          <CommunityCards cards={communityCards} />
-        </div>
+          {/* Top: Opponents */}
+          <div className={`flex ${topIndices.length === 1 ? 'justify-center' : 'justify-center gap-3'} w-full z-10`}>
+            {topIndices.map((idx) => {
+              const p = players[idx];
+              if (!p) return null;
+              return (
+                <PlayerSeat
+                  key={p.playerId}
+                  player={p}
+                  isActive={currentPlayerIndex === idx}
+                  isDealer={dealerPosition === idx}
+                  showCards={shouldShowCards(idx)}
+                  holeCards={getHoleCards(idx)}
+                />
+              );
+            })}
+          </div>
 
-        {/* Bottom: My avatar + my cards */}
-        <div className="flex items-center justify-center gap-2 pb-1">
-          {players[bottomIndex] && (
-            <div className="flex items-center gap-2">
-              <div className="flex flex-col items-center">
-                {dealerPosition === bottomIndex && (
-                  <span className="w-3.5 h-3.5 rounded-full bg-white text-gray-900 text-[7px] font-black flex items-center justify-center shadow-sm border border-gray-300 mb-0.5">D</span>
-                )}
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md bg-gradient-to-br from-blue-500 to-blue-700 ${currentPlayerIndex === bottomIndex ? 'ring-2 ring-poker-gold' : 'ring-1 ring-gray-600/50'}`}>
-                  {players[bottomIndex].username.charAt(0).toUpperCase()}
+          {/* Middle: Pot + Community cards */}
+          <div className="flex flex-col items-center gap-2 z-10">
+            <PotDisplay amount={safePot} sidePots={safeSidePots} />
+            <CommunityCards cards={communityCards} />
+          </div>
+
+          {/* Bottom: My avatar + my cards */}
+          <div className="flex items-center justify-center gap-3 pb-1 z-10">
+            {players[bottomIndex] && (
+              <div className="flex items-center gap-3">
+                <div className="flex flex-col items-center">
+                  {dealerPosition === bottomIndex && (
+                    <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-white text-gray-900 text-[8px] sm:text-[9px] font-black flex items-center justify-center shadow-md border border-gray-300 mb-0.5">D</span>
+                  )}
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base shadow-lg bg-gradient-to-br from-blue-500 to-blue-700 ${currentPlayerIndex === bottomIndex ? 'ring-2 ring-poker-gold' : 'ring-2 ring-gray-600/50'}`}>
+                    {players[bottomIndex].username.charAt(0).toUpperCase()}
+                  </div>
+                  {/* Name badge */}
+                  <div className="bg-gray-900/90 border border-gray-700 rounded px-2 py-0.5 mt-0.5 shadow-md">
+                    <span className="text-xs sm:text-sm text-gray-100 block text-center">{players[bottomIndex].username}</span>
+                    <span className="text-xs sm:text-sm text-poker-gold font-bold block text-center">${players[bottomIndex].chipCount}</span>
+                  </div>
                 </div>
-                <span className="text-[8px] text-gray-300 mt-0.5">{players[bottomIndex].username}</span>
-                <span className="text-[9px] text-poker-gold font-bold">${players[bottomIndex].chipCount}</span>
+                {/* My hole cards — larger for visibility */}
+                <div className="flex gap-1">
+                  {getHoleCards(bottomIndex).length > 0
+                    ? getHoleCards(bottomIndex).map((card, i) => (
+                        <Card key={i} rank={card.rank} suit={card.suit} />
+                      ))
+                    : !players[bottomIndex].status?.includes('folded') && (
+                        <>
+                          <Card faceDown />
+                          <Card faceDown />
+                        </>
+                      )}
+                </div>
               </div>
-              {/* My hole cards — larger for visibility */}
-              <div className="flex gap-0.5 [&>div]:w-10 [&>div]:h-14 [&>div]:text-xs">
-                {getHoleCards(bottomIndex).length > 0
-                  ? getHoleCards(bottomIndex).map((card, i) => (
-                      <Card key={i} rank={card.rank} suit={card.suit} />
-                    ))
-                  : !players[bottomIndex].status?.includes('folded') && (
-                      <>
-                        <Card faceDown />
-                        <Card faceDown />
-                      </>
-                    )}
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 

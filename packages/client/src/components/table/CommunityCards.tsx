@@ -8,7 +8,7 @@ interface CommunityCardsProps {
 /**
  * Community cards display showing 0-5 cards in a compact row.
  * Cards are revealed progressively: flop (3), turn (4), river (5).
- * Mobile-first sizing with w-8 h-11 cards and tight gaps.
+ * Larger cards with proper spacing for PartyPoker desktop style.
  * Satisfies Requirements 6.3.
  */
 export function CommunityCards({ cards }: CommunityCardsProps) {
@@ -16,13 +16,13 @@ export function CommunityCards({ cards }: CommunityCardsProps) {
   const slots = Array.from({ length: 5 }, (_, i) => cards[i] ?? null);
 
   return (
-    <div className="flex items-center justify-center gap-1" aria-label="Community cards">
+    <div className="flex items-center justify-center gap-2 sm:gap-3" aria-label="Community cards">
       {slots.map((card, i) => (
         <div key={i} className="flex-shrink-0">
           {card ? (
             <Card rank={card.rank} suit={card.suit} />
           ) : (
-            <div className="w-8 h-11 rounded-md border border-green-700/40 bg-green-900/30 shadow-inner" aria-label="Empty card slot" />
+            <div className="w-12 h-[4.5rem] sm:w-14 sm:h-[5.25rem] rounded-lg border-2 border-green-700/40 bg-green-800/20 shadow-inner" aria-label="Empty card slot" />
           )}
         </div>
       ))}

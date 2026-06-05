@@ -22,20 +22,21 @@ function getSuitColor(suit: CardType['suit']): string {
 /**
  * Card component displaying a playing card with rank and suit.
  * Shows a premium card back pattern when faceDown is true.
- * Mobile-first compact sizing (w-8 h-11 default).
+ * Larger sizing for PartyPoker desktop-style visuals.
  * Satisfies Requirements 6.5, 13.2.
  */
 export function Card({ rank, suit, faceDown = false }: CardProps) {
   if (faceDown || !rank || !suit) {
     return (
       <div
-        className="w-8 h-11 rounded-md bg-gradient-to-br from-gray-800 via-gray-900 to-gray-950 border border-gray-600/50 shadow-md flex items-center justify-center overflow-hidden"
+        className="w-12 h-[4.5rem] sm:w-14 sm:h-[5.25rem] rounded-lg bg-gradient-to-br from-gray-700 via-gray-800 to-gray-950 border-2 border-gray-600/60 shadow-lg flex items-center justify-center overflow-hidden"
         aria-label="Face-down card"
         role="img"
       >
         <div className="w-full h-full relative flex items-center justify-center">
-          <div className="absolute inset-0.5 rounded-sm border border-poker-gold/30" />
-          <span className="text-poker-gold text-[8px] opacity-50">♦</span>
+          <div className="absolute inset-1 rounded-md border border-poker-gold/40 bg-gradient-to-br from-gray-700/30 to-gray-900/30" />
+          <div className="absolute inset-2 rounded-sm opacity-20 bg-[repeating-linear-gradient(45deg,transparent,transparent_3px,rgba(255,215,0,0.15)_3px,rgba(255,215,0,0.15)_4px)]" />
+          <span className="text-poker-gold text-sm sm:text-base opacity-60 z-10">♦</span>
         </div>
       </div>
     );
@@ -46,18 +47,18 @@ export function Card({ rank, suit, faceDown = false }: CardProps) {
 
   return (
     <div
-      className={`relative w-8 h-11 rounded-md bg-white border border-gray-200 shadow-md flex flex-col items-start justify-start p-0.5 ${colorClass}`}
+      className={`relative w-12 h-[4.5rem] sm:w-14 sm:h-[5.25rem] rounded-lg bg-gradient-to-b from-white to-gray-50 border border-gray-300 shadow-lg flex flex-col items-start justify-start p-1 ${colorClass}`}
       aria-label={`${rank} of ${suit}`}
       role="img"
     >
       {/* Top-left rank + suit */}
       <div className="flex flex-col items-center leading-none">
-        <span className="text-[9px] font-bold">{rank}</span>
-        <span className="text-[10px]">{suitSymbol}</span>
+        <span className="text-sm sm:text-base font-bold">{rank}</span>
+        <span className="text-xs">{suitSymbol}</span>
       </div>
       {/* Center suit symbol */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-sm opacity-90">{suitSymbol}</span>
+        <span className="text-xl sm:text-2xl opacity-90">{suitSymbol}</span>
       </div>
     </div>
   );

@@ -35,66 +35,72 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
 
   return (
     <div
-      className={`relative flex flex-col items-center gap-0.5 p-1 rounded-lg transition-opacity ${
+      className={`relative flex flex-col items-center gap-0.5 p-1.5 rounded-lg transition-opacity ${
         isFolded ? 'opacity-40' : ''
       }`}
       aria-label={`${player.username}${isActive ? ' (active)' : ''}${isFolded ? ' (folded)' : ''}${isAllIn ? ' (all-in)' : ''}`}
     >
       {/* Dealer button indicator */}
       {isDealer && (
-        <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-white text-gray-900 text-[6px] font-black flex items-center justify-center shadow-sm border border-gray-300 z-10">
+        <span className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-white text-gray-900 text-[7px] sm:text-[8px] font-black flex items-center justify-center shadow-md border border-gray-300 z-10">
           D
         </span>
       )}
 
       {/* Avatar circle with status ring */}
       <div
-        className={`relative w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-[10px] shadow-md bg-gradient-to-br ${avatarGradient} ${
+        className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base shadow-lg bg-gradient-to-br ${avatarGradient} ${
           isActive
             ? 'ring-2 ring-poker-gold animate-pulse'
             : isFolded
             ? 'ring-1 ring-red-500/50'
-            : 'ring-1 ring-gray-600/50'
+            : 'ring-2 ring-gray-600/50'
         } ${isAllIn ? 'ring-2 ring-red-500' : ''}`}
       >
         {firstLetter}
       </div>
 
-      {/* Username */}
-      <span className="text-[8px] font-medium text-gray-200 truncate max-w-[50px]">
-        {player.username}
-      </span>
-
-      {/* Chip count */}
-      <span className="text-[8px] text-poker-gold font-bold">
-        ${player.chipCount}
-      </span>
+      {/* Name badge — dark background like PartyPoker */}
+      <div className="bg-gray-900/90 border border-gray-700 rounded px-2 py-0.5 mt-0.5 shadow-md">
+        <span className="text-xs sm:text-sm font-medium text-gray-100 truncate max-w-[60px] block text-center">
+          {player.username}
+        </span>
+        <span className="text-xs sm:text-sm text-poker-gold font-bold block text-center">
+          ${player.chipCount}
+        </span>
+      </div>
 
       {/* All-In badge */}
       {isAllIn && (
-        <span className="text-[7px] text-amber-300 font-bold">ALL-IN</span>
+        <span className="text-[9px] sm:text-[10px] text-amber-300 font-bold bg-red-900/60 px-1.5 py-0.5 rounded">ALL-IN</span>
       )}
 
       {/* Folded text — minimal */}
       {isFolded && (
-        <span className="text-[7px] text-red-400 font-medium">Folded</span>
+        <span className="text-[9px] sm:text-[10px] text-red-400 font-medium">Folded</span>
       )}
 
       {/* Current bet */}
       {typeof player.currentBet === 'number' && player.currentBet > 0 && (
-        <span className="text-[8px] text-poker-gold/80">${Number(player.currentBet)}</span>
+        <span className="text-[9px] sm:text-xs text-poker-gold/80">${Number(player.currentBet)}</span>
       )}
 
-      {/* Hole cards — tiny face-down placeholders or face-up */}
-      <div className="flex gap-0.5 [&>div]:w-5 [&>div]:h-7">
+      {/* Hole cards — face-down with overlapping tilt for opponents */}
+      <div className="flex">
         {showCards && holeCards.length > 0
           ? holeCards.map((card, i) => (
-              <Card key={i} rank={card.rank} suit={card.suit} />
+              <div key={i} className={i === 1 ? '-ml-3' : ''}>
+                <Card rank={card.rank} suit={card.suit} />
+              </div>
             ))
           : !isFolded && (
               <>
-                <Card faceDown />
-                <Card faceDown />
+                <div className="-rotate-6">
+                  <Card faceDown />
+                </div>
+                <div className="-ml-3 rotate-6">
+                  <Card faceDown />
+                </div>
               </>
             )}
       </div>
