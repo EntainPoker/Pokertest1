@@ -77,7 +77,7 @@ export function useGameState() {
         gameStatus: 'playing',
         myHoleCards,
         isMyTurn,
-        turnTimeRemaining: handState.turnTimeoutSeconds,
+        turnTimeRemaining: isMyTurn ? handState.turnTimeoutSeconds : 0,
         tournamentResult: null,
         tableTheme: tableTheme || 'classic-green',
       });
