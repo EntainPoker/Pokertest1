@@ -149,7 +149,6 @@ export function useGameState() {
 
       // ALWAYS reset timer to full 15 when the acting player changes (Rule 64)
       // Each action gets a fresh 15 seconds — timer never carries over
-      const prevHandState = useGameStore.getState().handState;
       const playerChanged = !prevHandState || prevHandState.currentPlayerIndex !== handState.currentPlayerIndex;
 
       useGameStore.setState({
