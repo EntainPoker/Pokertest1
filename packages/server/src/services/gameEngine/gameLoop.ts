@@ -938,6 +938,21 @@ function updatePot(handState: HandState): void {
 }
 
 /**
+ * Converts a PlayerAction into a human-readable string.
+ */
+function getActionText(action: PlayerAction): string {
+  switch (action.type) {
+    case 'check': return 'Check';
+    case 'call': return 'Call';
+    case 'fold': return 'Fold';
+    case 'all_in': return 'All-In';
+    case 'bet': return `Bet $${action.amount}`;
+    case 'raise': return `Raise $${action.amount}`;
+    default: return '';
+  }
+}
+
+/**
  * Persists the game state in the active game states store.
  */
 function persistState(gameInstanceId: string, gameState: GameState): void {
@@ -959,6 +974,8 @@ function emitGameState(gameInstanceId: string, gameState: GameState): void {
         holeCards: [], // Never broadcast hole cards in state
       })),
       lastAction: null, // Don't send action objects to prevent React render crashes
+      lastActionText: gameState.handState.lastActionText ?? null,
+      lastActionPlayerId: gameState.handState.lastActionPlayerId ?? null,
       turnStartedAt: new Date(), // Always send as fresh Date (serialized to string by Socket.IO)
       sidePots: (gameState.handState.sidePots || []).map(sp => ({
         amount: typeof sp.amount === 'number' ? sp.amount : 0,

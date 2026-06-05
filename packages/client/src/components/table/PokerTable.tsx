@@ -39,7 +39,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   const prevPlayersRef = useRef<typeof players>([]);
   const prevPotRef = useRef<number>(0);
 
-  // Detect actions and winners from state changes
+  // Detect actions and winners from state changes — use server-provided lastActionText
   useEffect(() => {
     const prevPlayers = prevPlayersRef.current;
     const prevPot = prevPotRef.current;
@@ -58,39 +58,17 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
       }
     }
 
-    // Detect fold/check/bet actions from status changes
-    if (prevPlayers.length > 0 && prevPlayers.length === players.length) {
-      const actionUpdates: Record<string, string> = {};
-      for (let i = 0; i < players.length; i++) {
-        const prev = prevPlayers[i];
-        const curr = players[i];
-        if (!prev || !curr || prev.playerId !== curr.playerId) continue;
-
-        if (prev.status === 'active' && curr.status === 'folded') {
-          actionUpdates[curr.playerId] = 'Fold';
-        } else if (prev.status === 'active' && curr.status === 'all_in') {
-          actionUpdates[curr.playerId] = 'All-In';
-        } else if (curr.status === 'active' && curr.currentBet > prev.currentBet) {
-          const betDiff = curr.currentBet - prev.currentBet;
-          if (prev.currentBet === 0 && handState?.currentBet === curr.currentBet && curr.currentBet > 0) {
-            actionUpdates[curr.playerId] = `Bet $${curr.currentBet}`;
-          } else if (curr.currentBet > (handState?.currentBet ?? 0)) {
-            actionUpdates[curr.playerId] = `Raise $${curr.currentBet}`;
-          } else {
-            actionUpdates[curr.playerId] = 'Call';
-          }
-        } else if (curr.status === 'active' && curr.hasActed && !prev.hasActed && curr.currentBet === prev.currentBet) {
-          actionUpdates[curr.playerId] = 'Check';
-        }
-      }
-      if (Object.keys(actionUpdates).length > 0) {
-        setPlayerActions(prev => ({ ...prev, ...actionUpdates }));
-      }
+    // Use server-provided action text (accurate, no guessing)
+    if (handState?.lastActionText && handState?.lastActionPlayerId) {
+      setPlayerActions(prev => ({
+        ...prev,
+        [handState.lastActionPlayerId!]: handState.lastActionText!,
+      }));
     }
 
     prevPlayersRef.current = players;
     prevPotRef.current = pot;
-  }, [players, pot, handState?.currentBet]);
+  }, [players, pot, handState?.lastActionText, handState?.lastActionPlayerId]);
 
   // Ensure pot is always a number (never an object) to prevent React Error #300
   const safePot = typeof pot === 'number' && !isNaN(pot) ? pot : 0;

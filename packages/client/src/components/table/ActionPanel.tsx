@@ -180,6 +180,17 @@ export function ActionPanel({
 
   return (
     <div className="shrink-0 bg-gray-900 px-2 pt-1.5 pb-[env(safe-area-inset-bottom,4px)] border-t border-gray-700">
+      {/* Turn timer — prominent countdown */}
+      <div className="flex items-center gap-2 mb-1.5">
+        <span className="text-lg font-bold text-poker-gold">{turnTimeRemaining}s</span>
+        <div className="flex-1 h-2.5 bg-gray-700 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-poker-gold to-amber-400 rounded-full transition-all duration-1000"
+            style={{ width: `${timerProgress}%` }}
+          />
+        </div>
+      </div>
+
       {/* Slider row — only show if bet/raise available */}
       {showAmountInput && (
         <div className="flex items-center gap-2 mb-1.5">

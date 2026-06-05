@@ -112,14 +112,14 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
       )}
 
       {/* Hole cards — face-down with overlapping tilt for opponents */}
-      <div className="flex">
+      <div className={`flex ${isFolded ? 'opacity-30 grayscale' : ''}`}>
         {showCards && holeCards.length > 0
           ? holeCards.map((card, i) => (
               <div key={i} className={i === 1 ? '-ml-3' : ''}>
                 <Card rank={card.rank} suit={card.suit} />
               </div>
             ))
-          : !isFolded && (
+          : (
               <>
                 <div className="-rotate-6">
                   <Card faceDown />

@@ -24,6 +24,7 @@ export function LastHandSummary({ gameId, onClose }: LastHandSummaryProps) {
   const [hand, setHand] = useState<HandHistory | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentHandNumber, setCurrentHandNumber] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -31,9 +32,15 @@ export function LastHandSummary({ gameId, onClose }: LastHandSummaryProps) {
     async function fetchLastHand() {
       try {
         setLoading(true);
-        const data = await apiFetch<LastHandApiResponse>(`/api/history/${gameId}/last-hand`);
+        const url = currentHandNumber
+          ? `/api/history/${gameId}/hands?handNumber=${currentHandNumber}`
+          : `/api/history/${gameId}/last-hand`;
+        const data = await apiFetch<LastHandApiResponse>(url);
         if (!cancelled) {
           setHand(data.hand);
+          if (data.hand) {
+            setCurrentHandNumber(data.hand.handNumber);
+          }
           if (!data.hand && data.message) {
             setError(data.message);
           }
@@ -51,7 +58,7 @@ export function LastHandSummary({ gameId, onClose }: LastHandSummaryProps) {
 
     fetchLastHand();
     return () => { cancelled = true; };
-  }, [gameId]);
+  }, [gameId, currentHandNumber]);
 
   /** Group actions by betting round */
   function groupActionsByRound(actions: HandHistoryAction[]) {
@@ -132,16 +139,40 @@ export function LastHandSummary({ gameId, onClose }: LastHandSummaryProps) {
       <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl bg-gray-900 border border-gray-700 shadow-2xl">
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 bg-gray-900 border-b border-gray-700">
-          <h2 className="text-lg font-semibold text-white">Last Hand</h2>
-          <button
-            onClick={onClose}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
-            aria-label="Close hand history"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <h2 className="text-lg font-semibold text-white">
+            {hand ? `Hand #${hand.handNumber}` : 'Last Hand'}
+          </h2>
+          <div className="flex items-center gap-2">
+            {/* Previous/Next navigation */}
+            {hand && (
+              <>
+                <button
+                  onClick={() => setCurrentHandNumber((hand.handNumber ?? 1) - 1)}
+                  disabled={!hand.handNumber || hand.handNumber <= 1}
+                  className="min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  aria-label="Previous hand"
+                >
+                  ←
+                </button>
+                <button
+                  onClick={() => setCurrentHandNumber((hand.handNumber ?? 1) + 1)}
+                  className="min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+                  aria-label="Next hand"
+                >
+                  →
+                </button>
+              </>
+            )}
+            <button
+              onClick={onClose}
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+              aria-label="Close hand history"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Body */}
