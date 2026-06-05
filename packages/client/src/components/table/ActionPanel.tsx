@@ -166,6 +166,10 @@ export function ActionPanel({
     if (isAllInBet) {
       rightLabel = `All-In $${myPlayer.chipCount}`;
       handleRight = handleAllIn;
+    } else if (handState.bettingRound === 'preflop' && (myPlayer.currentBet || 0) >= currentBet && currentBet > 0) {
+      // Preflop BB special case: label as "Raise" not "Bet" since the blind counts as a bet
+      rightLabel = `Raise $${effectiveBetAmount}`;
+      handleRight = handleBet; // Server accepts it as a bet action
     } else {
       rightLabel = `Bet $${effectiveBetAmount}`;
       handleRight = handleBet;
