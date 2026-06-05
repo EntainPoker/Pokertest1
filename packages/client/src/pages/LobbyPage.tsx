@@ -53,7 +53,7 @@ export function LobbyPage() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <span className="text-xl font-extrabold bg-gradient-to-r from-poker-gold to-amber-400 bg-clip-text text-transparent">
-              Spin &amp; Go
+              Entain Poker
             </span>
             {player && (
               <span className="text-sm text-gray-400 font-medium">
