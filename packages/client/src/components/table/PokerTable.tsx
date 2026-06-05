@@ -34,6 +34,64 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   const [showLastHand, setShowLastHand] = useState(false);
   const myHoleCards = useGameStore((s) => s.myHoleCards);
 
+  // Track last action per player for action badge display
+  const [playerActions, setPlayerActions] = useState<Record<string, string>>({});
+  const prevPlayersRef = useRef<typeof players>([]);
+  const prevPotRef = useRef<number>(0);
+
+  // Detect actions and winners from state changes
+  useEffect(() => {
+    const prevPlayers = prevPlayersRef.current;
+    const prevPot = prevPotRef.current;
+
+    // Detect winner: pot went to 0 and a player's chips increased
+    if (prevPot > 0 && pot === 0 && prevPlayers.length > 0) {
+      const newActions: Record<string, string> = {};
+      for (const p of players) {
+        const prev = prevPlayers.find(pp => pp.playerId === p.playerId);
+        if (prev && p.chipCount > prev.chipCount) {
+          newActions[p.playerId] = '__WINNER__';
+        }
+      }
+      if (Object.keys(newActions).length > 0) {
+        setPlayerActions(newActions);
+      }
+    }
+
+    // Detect fold/check/bet actions from status changes
+    if (prevPlayers.length > 0 && prevPlayers.length === players.length) {
+      const actionUpdates: Record<string, string> = {};
+      for (let i = 0; i < players.length; i++) {
+        const prev = prevPlayers[i];
+        const curr = players[i];
+        if (!prev || !curr || prev.playerId !== curr.playerId) continue;
+
+        if (prev.status === 'active' && curr.status === 'folded') {
+          actionUpdates[curr.playerId] = 'Fold';
+        } else if (prev.status === 'active' && curr.status === 'all_in') {
+          actionUpdates[curr.playerId] = 'All-In';
+        } else if (curr.status === 'active' && curr.currentBet > prev.currentBet) {
+          const betDiff = curr.currentBet - prev.currentBet;
+          if (prev.currentBet === 0 && handState?.currentBet === curr.currentBet && curr.currentBet > 0) {
+            actionUpdates[curr.playerId] = `Bet $${curr.currentBet}`;
+          } else if (curr.currentBet > (handState?.currentBet ?? 0)) {
+            actionUpdates[curr.playerId] = `Raise $${curr.currentBet}`;
+          } else {
+            actionUpdates[curr.playerId] = 'Call';
+          }
+        } else if (curr.status === 'active' && curr.hasActed && !prev.hasActed && curr.currentBet === prev.currentBet) {
+          actionUpdates[curr.playerId] = 'Check';
+        }
+      }
+      if (Object.keys(actionUpdates).length > 0) {
+        setPlayerActions(prev => ({ ...prev, ...actionUpdates }));
+      }
+    }
+
+    prevPlayersRef.current = players;
+    prevPotRef.current = pot;
+  }, [players, pot, handState?.currentBet]);
+
   // Ensure pot is always a number (never an object) to prevent React Error #300
   const safePot = typeof pot === 'number' && !isNaN(pot) ? pot : 0;
   const safeSidePots = Array.isArray(sidePots) ? sidePots : [];
@@ -160,6 +218,8 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
                   isDealer={dealerPosition === idx}
                   showCards={shouldShowCards(idx)}
                   holeCards={getHoleCards(idx)}
+                  lastAction={playerActions[p.playerId] === '__WINNER__' ? undefined : playerActions[p.playerId]}
+                  isWinner={playerActions[p.playerId] === '__WINNER__'}
                 />
               );
             })}
