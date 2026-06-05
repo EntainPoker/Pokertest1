@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import type { HandState, PlayerAction } from '@spin-and-go/shared';
 import { useTurnTimer } from '../../hooks/useTurnTimer';
+import { useGameStore } from '../../stores/gameStore';
 
 interface ActionPanelProps {
   /** Current hand state */
