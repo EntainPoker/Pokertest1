@@ -152,6 +152,14 @@ io.on('connection', (socket) => {
     joinedGames.add(data.gameId);
   });
 
+  // Handle game:leave — player navigating away from a table
+  socket.on('game:leave', (data: { gameId: string }) => {
+    if (data.gameId) {
+      socket.leave(`game:${data.gameId}`);
+      joinedGames.delete(data.gameId);
+    }
+  });
+
   // Handle game:action — player submits an action
   socket.on('game:action', (data: { gameId: string; playerId: string; action: PlayerAction }) => {
     // Validate required fields
