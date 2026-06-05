@@ -7,7 +7,7 @@ interface UseTurnTimerOptions {
   onExpire: () => void;
   /** Whether the timer is active (it's the player's turn) */
   isActive: boolean;
-  /** Increments on every new turn — forces timer reset even if timeRemaining stays 15 */
+  /** Increments on every new turn — forces timer reset */
   resetKey?: number;
 }
 
@@ -19,9 +19,13 @@ interface UseTurnTimerResult {
 }
 
 /**
- * Turn timer that counts down from 15 to 0.
- * Resets to 15 on every new turn (detected via resetKey change).
- * Fires onExpire when it hits 0.
+ * Turn timer that counts down from timeRemaining (15) to 0.
+ * ALWAYS starts fresh when:
+ * - Component mounts (isActive becomes true)
+ * - resetKey changes
+ * - timeRemaining changes
+ *
+ * Uses a ref-based interval to avoid React state dependency issues.
  */
 export function useTurnTimer({
   timeRemaining,
@@ -29,16 +33,17 @@ export function useTurnTimer({
   isActive,
   resetKey = 0,
 }: UseTurnTimerOptions): UseTurnTimerResult {
-  const [secondsLeft, setSecondsLeft] = useState(timeRemaining);
+  const [secondsLeft, setSecondsLeft] = useState(timeRemaining > 0 ? timeRemaining : 15);
   const [isExpired, setIsExpired] = useState(false);
   const onExpireRef = useRef(onExpire);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startTimeRef = useRef<number>(Date.now());
+  const durationRef = useRef<number>((timeRemaining > 0 ? timeRemaining : 15) * 1000);
 
   useEffect(() => {
     onExpireRef.current = onExpire;
   }, [onExpire]);
 
-  // Clear interval helper
   const clearTimer = useCallback(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -46,33 +51,36 @@ export function useTurnTimer({
     }
   }, []);
 
-  // When resetKey or isActive changes: reset and start/stop the countdown
+  // Start/restart timer whenever isActive, resetKey, or timeRemaining changes
   useEffect(() => {
     clearTimer();
 
-    // Reset to full time
-    setSecondsLeft(timeRemaining);
+    const duration = timeRemaining > 0 ? timeRemaining : 15;
+    setSecondsLeft(duration);
     setIsExpired(false);
 
-    // Only start counting if it's our turn
-    if (!isActive || timeRemaining <= 0) {
+    if (!isActive || duration <= 0) {
       return;
     }
 
-    // Start countdown from timeRemaining
-    let current = timeRemaining;
+    // Record start time for accurate countdown
+    startTimeRef.current = Date.now();
+    durationRef.current = duration * 1000;
 
+    // Use time-based countdown (not just interval counting) for accuracy
     intervalRef.current = setInterval(() => {
-      current -= 1;
-      if (current <= 0) {
+      const elapsed = Date.now() - startTimeRef.current;
+      const remaining = Math.ceil((durationRef.current - elapsed) / 1000);
+
+      if (remaining <= 0) {
         setSecondsLeft(0);
         setIsExpired(true);
         clearTimer();
         onExpireRef.current();
       } else {
-        setSecondsLeft(current);
+        setSecondsLeft(remaining);
       }
-    }, 1000);
+    }, 250); // Check 4x per second for smooth updates
 
     return clearTimer;
   }, [isActive, resetKey, timeRemaining, clearTimer]);
