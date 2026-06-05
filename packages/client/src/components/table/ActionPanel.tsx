@@ -4,21 +4,18 @@ import { useTurnTimer } from '../../hooks/useTurnTimer';
 import { useGameStore } from '../../stores/gameStore';
 
 interface ActionPanelProps {
-  /** Current hand state */
   handState: HandState;
-  /** The current player's ID */
   currentPlayerId: string;
-  /** Callback when player submits an action */
   onAction: (action: PlayerAction) => void;
-  /** Seconds remaining for the turn (from server) */
   turnTimeRemaining: number;
-  /** Callback when turn timer expires */
   onTurnExpire?: () => void;
 }
 
 /**
- * Action panel with countdown timer, quick bet buttons, and slider.
- * Returns null when it's not the current player's turn.
+ * Redesigned action panel matching the mock:
+ * - Timer circle bottom-left
+ * - Slider + quick bets (1.5x, 2x, 3x) on a row
+ * - 3 large action buttons (Fold / Check|Call / Bet|Raise)
  */
 export function ActionPanel({
   handState,
@@ -28,35 +25,27 @@ export function ActionPanel({
   onTurnExpire,
 }: ActionPanelProps) {
   const { players, currentPlayerIndex, currentBet, minRaise } = handState;
-
   const currentPlayer = players[currentPlayerIndex];
   const isMyTurn = currentPlayer?.playerId === currentPlayerId;
-
-  // Find the player's data
   const myPlayer = players.find((p) => p.playerId === currentPlayerId);
 
-  // Get the reset key from store — increments on every new turn
   const turnResetKey = useGameStore((s) => s.turnResetKey);
 
-  // Use the turn timer hook for proper countdown
-  // Always start at 15 when this component renders (it only renders on our turn)
   const { secondsLeft } = useTurnTimer({
-    timeRemaining: 15, // Always 15 seconds per action
+    timeRemaining: 15,
     onExpire: onTurnExpire || (() => {}),
     isActive: isMyTurn,
     resetKey: turnResetKey,
   });
 
-  // Determine valid actions
+  // Valid actions
   const validActions = useMemo(() => {
     if (!myPlayer || !isMyTurn || myPlayer.status !== 'active') {
       return { check: false, bet: false, call: false, raise: false, fold: false, allIn: false };
     }
-
     const hasOutstandingBet = currentBet > myPlayer.currentBet;
     const amountToCall = currentBet - myPlayer.currentBet;
     const canAffordCall = myPlayer.chipCount >= amountToCall;
-
     return {
       check: !hasOutstandingBet,
       bet: !hasOutstandingBet && myPlayer.chipCount > 0,
@@ -67,37 +56,23 @@ export function ActionPanel({
     };
   }, [myPlayer, isMyTurn, currentBet, minRaise, handState.players.length]);
 
-  // Bet/Raise minimum: always the big blind for a new betting round
-  // For raises: currentBet + minRaise increment (which equals last raise size)
+  // Bet min/max
   const betMin = useMemo(() => {
     if (!myPlayer) return 0;
     if (validActions.bet) {
-      // Preflop BB option: can raise from current bet
       if (handState.bettingRound === 'preflop' && (myPlayer.currentBet || 0) >= currentBet && currentBet > 0) {
         return currentBet + (minRaise || currentBet);
       }
-      // Standard bet: minimum is the big blind (minRaise at start of a new round)
-      const bigBlind = handState.minRaise || 20;
-      return bigBlind;
+      return handState.minRaise || 20;
     }
-    if (validActions.raise) {
-      // Min raise = current bet + last raise increment (stored in minRaise)
-      return currentBet + minRaise;
-    }
+    if (validActions.raise) return currentBet + minRaise;
     return 0;
   }, [myPlayer, validActions, currentBet, minRaise, handState.minRaise, handState.bettingRound]);
 
   const betMax = myPlayer ? myPlayer.chipCount + (myPlayer.currentBet || 0) : 0;
-
   const [betAmount, setBetAmount] = useState(betMin);
 
-  // CRITICAL FIX: Reset betAmount to the minimum when betMin changes
-  // This ensures after a street change, the default goes back to min bet (big blind)
-  useEffect(() => {
-    setBetAmount(betMin);
-  }, [betMin]);
-
-  // Also clamp if out of bounds
+  useEffect(() => { setBetAmount(betMin); }, [betMin]);
   useEffect(() => {
     if (betAmount < betMin) setBetAmount(betMin);
     if (betAmount > betMax) setBetAmount(betMax);
@@ -108,31 +83,15 @@ export function ActionPanel({
     return currentBet - myPlayer.currentBet;
   }, [myPlayer, currentBet]);
 
-  const handleCheck = useCallback(() => {
-    onAction({ type: 'check' });
-  }, [onAction]);
+  // Action handlers
+  const handleFold = useCallback(() => onAction({ type: 'fold' }), [onAction]);
+  const handleCheck = useCallback(() => onAction({ type: 'check' }), [onAction]);
+  const handleCall = useCallback(() => onAction({ type: 'call' }), [onAction]);
+  const handleBet = useCallback(() => onAction({ type: 'bet', amount: betAmount }), [onAction, betAmount]);
+  const handleRaise = useCallback(() => onAction({ type: 'raise', amount: betAmount }), [onAction, betAmount]);
+  const handleAllIn = useCallback(() => onAction({ type: 'all_in' }), [onAction]);
 
-  const handleBet = useCallback(() => {
-    onAction({ type: 'bet', amount: betAmount });
-  }, [onAction, betAmount]);
-
-  const handleCall = useCallback(() => {
-    onAction({ type: 'call' });
-  }, [onAction]);
-
-  const handleRaise = useCallback(() => {
-    onAction({ type: 'raise', amount: betAmount });
-  }, [onAction, betAmount]);
-
-  const handleFold = useCallback(() => {
-    onAction({ type: 'fold' });
-  }, [onAction]);
-
-  const handleAllIn = useCallback(() => {
-    onAction({ type: 'all_in' });
-  }, [onAction]);
-
-  // Quick bet presets
+  // Quick bets
   const presets = useMemo(() => {
     if (!myPlayer) return [];
     const base = validActions.raise ? currentBet : 0;
@@ -146,132 +105,131 @@ export function ActionPanel({
 
   const showAmountInput = validActions.bet || validActions.raise;
 
-  // Timer progress (percentage remaining)
-  const timerMax = handState.turnTimeoutSeconds || 15;
-  const timerProgress = Math.max(0, Math.min(100, (secondsLeft / timerMax) * 100));
-  const isTimerUrgent = secondsLeft <= 5 && secondsLeft > 0;
-
-  // Don't render if it's not the player's turn OR if it's showdown
+  // Don't render if not my turn or showdown
   if (!isMyTurn || !myPlayer || myPlayer.status !== 'active' || handState.bettingRound === 'showdown') {
     return null;
   }
 
-  // Determine which buttons to show — always 3 columns
+  // Button config
   const canAffordMinRaise = myPlayer.chipCount >= (betMin - (myPlayer.currentBet || 0));
   const effectiveBetAmount = Math.min(betAmount, myPlayer.chipCount + (myPlayer.currentBet || 0));
   const isAllInBet = effectiveBetAmount >= myPlayer.chipCount + (myPlayer.currentBet || 0);
 
-  const leftLabel = 'Fold';
-  const middleLabel = validActions.call ? `Call $${callAmount}` : 'Check';
-  
+  // Middle button
+  const middleLabel = validActions.call ? `CALL $${callAmount}` : 'CHECK';
+  const handleMiddle = validActions.call ? handleCall : handleCheck;
+
+  // Right button
   let rightLabel: string;
   let handleRight: () => void;
-  
   if (validActions.raise) {
     if (isAllInBet || !canAffordMinRaise) {
-      rightLabel = `All-In $${myPlayer.chipCount}`;
+      rightLabel = `ALL-IN $${myPlayer.chipCount}`;
       handleRight = handleAllIn;
     } else {
-      rightLabel = `Raise $${effectiveBetAmount}`;
+      rightLabel = `RAISE $${effectiveBetAmount}`;
       handleRight = handleRaise;
     }
   } else if (validActions.bet) {
     if (isAllInBet) {
-      rightLabel = `All-In $${myPlayer.chipCount}`;
+      rightLabel = `ALL-IN $${myPlayer.chipCount}`;
       handleRight = handleAllIn;
     } else if (handState.bettingRound === 'preflop' && (myPlayer.currentBet || 0) >= currentBet && currentBet > 0) {
-      rightLabel = `Raise $${effectiveBetAmount}`;
+      rightLabel = `RAISE $${effectiveBetAmount}`;
       handleRight = handleRaise;
     } else {
-      rightLabel = `Bet $${effectiveBetAmount}`;
+      rightLabel = `BET $${effectiveBetAmount}`;
       handleRight = handleBet;
     }
   } else {
-    rightLabel = `All-In $${myPlayer.chipCount}`;
+    rightLabel = `ALL-IN $${myPlayer.chipCount}`;
     handleRight = handleAllIn;
   }
 
-  const handleLeft = handleFold;
-  const handleMiddle = validActions.call ? handleCall : handleCheck;
+  // Timer color
+  const isTimerUrgent = secondsLeft <= 5;
 
   return (
-    <div className="shrink-0 bg-gray-900 px-2 pt-1.5 pb-[env(safe-area-inset-bottom,4px)] border-t border-gray-700">
-      {/* Turn timer — prominent countdown */}
-      <div className="flex items-center gap-2 mb-1.5">
-        <span className={`text-lg font-bold tabular-nums ${isTimerUrgent ? 'text-red-500 animate-pulse' : 'text-poker-gold'}`}>
-          {secondsLeft}s
-        </span>
-        <div className="flex-1 h-2.5 bg-gray-700 rounded-full overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-1000 ${isTimerUrgent ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-poker-gold to-amber-400'}`}
-            style={{ width: `${timerProgress}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Quick bet buttons + Slider row — only show if bet/raise available */}
+    <div className="shrink-0 bg-gray-950 border-t border-gray-800 px-3 pt-2 pb-[env(safe-area-inset-bottom,6px)]">
+      {/* Row 1: Slider (60%) + Quick bets (40%) */}
       {showAmountInput && (
-        <div className="flex items-center gap-1.5 mb-1.5">
-          {/* Quick bet buttons on the left */}
-          <div className="flex flex-col gap-0.5 shrink-0">
-            {presets.map((preset) => (
-              <button
-                key={preset.label}
-                type="button"
-                onClick={() => setBetAmount(preset.amount)}
-                className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-all ${
-                  betAmount === preset.amount
-                    ? 'bg-poker-gold text-gray-900 border-poker-gold'
-                    : 'bg-gray-800 text-gray-300 border-gray-600 hover:border-poker-gold/50'
-                }`}
-              >
-                {preset.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Slider on the right (takes remaining space) */}
-          <div className="flex items-center gap-1.5 flex-1 min-w-0">
-            <span className="text-[10px] text-gray-400 shrink-0">${betMin}</span>
+        <div className="flex items-center gap-3 mb-2">
+          {/* Slider — 60% width */}
+          <div className="flex items-center gap-2 flex-[3]">
+            <span className="text-[10px] text-gray-500 shrink-0">${betMin}</span>
             <input
               type="range"
               min={betMin}
               max={betMax}
               value={betAmount}
               onChange={(e) => setBetAmount(parseInt(e.target.value, 10))}
-              className="flex-1 h-2 accent-poker-gold bg-gray-700 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-poker-gold [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:appearance-none"
+              className="flex-1 h-1.5 accent-poker-gold bg-gray-700 rounded-full appearance-none cursor-pointer"
               aria-label="Bet amount slider"
             />
-            <span className="text-xs sm:text-sm text-poker-gold font-bold shrink-0">${betAmount}</span>
+            <span className="text-xs text-poker-gold font-bold shrink-0">${betAmount}</span>
+          </div>
+          {/* Quick bets — 40% width */}
+          <div className="flex gap-1.5 flex-[2] justify-end">
+            {presets.map((p) => (
+              <button
+                key={p.label}
+                type="button"
+                onClick={() => setBetAmount(p.amount)}
+                className={`px-3 py-1.5 rounded text-xs font-bold transition-all ${
+                  betAmount === p.amount
+                    ? 'bg-poker-gold text-gray-900'
+                    : 'bg-gray-800 text-gray-300 border border-gray-600 hover:border-poker-gold/50'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Button row: 3 buttons, equal width */}
-      <div className="grid grid-cols-3 gap-1.5">
-        <button
-          type="button"
-          onClick={handleLeft}
-          className="min-h-[44px] sm:min-h-[48px] rounded-lg bg-gray-800 border border-gray-600 text-red-400 font-bold text-xs sm:text-sm transition-all active:bg-gray-700"
-        >
-          {leftLabel}
-        </button>
-        <button
-          type="button"
-          onClick={handleMiddle}
-          disabled={!validActions.check && !validActions.call}
-          className="min-h-[44px] sm:min-h-[48px] rounded-lg bg-gradient-to-b from-green-600 to-green-700 text-white font-bold text-xs sm:text-sm transition-all active:from-green-500 active:to-green-600 disabled:opacity-40"
-        >
-          {middleLabel}
-        </button>
-        <button
-          type="button"
-          onClick={handleRight}
-          disabled={!validActions.bet && !validActions.raise && !validActions.allIn}
-          className="min-h-[44px] sm:min-h-[48px] rounded-lg bg-gradient-to-b from-amber-500 to-amber-600 text-gray-900 font-bold text-xs sm:text-sm transition-all active:from-amber-400 active:to-amber-500 disabled:opacity-40"
-        >
-          {rightLabel}
-        </button>
+      {/* Row 2: Timer circle + 3 action buttons */}
+      <div className="flex items-center gap-2">
+        {/* Timer circle — bottom left */}
+        <div className={`w-11 h-11 rounded-full flex items-center justify-center border-2 shrink-0 font-bold text-sm tabular-nums ${
+          isTimerUrgent
+            ? 'border-red-500 text-red-500 animate-pulse bg-red-500/10'
+            : 'border-gray-600 text-white bg-gray-800'
+        }`}>
+          {secondsLeft}
+        </div>
+
+        {/* 3 action buttons — fill remaining space */}
+        <div className="flex-1 grid grid-cols-3 gap-2">
+          {/* FOLD */}
+          <button
+            type="button"
+            onClick={handleFold}
+            className="min-h-[52px] rounded-lg bg-gradient-to-b from-red-700 to-red-900 border border-red-600 text-white font-black text-sm sm:text-base tracking-wide transition-all active:from-red-600 active:to-red-800 shadow-lg"
+          >
+            FOLD
+          </button>
+
+          {/* CHECK / CALL */}
+          <button
+            type="button"
+            onClick={handleMiddle}
+            disabled={!validActions.check && !validActions.call}
+            className="min-h-[52px] rounded-lg bg-gradient-to-b from-green-600 to-green-800 border border-green-500 text-white font-black text-sm sm:text-base tracking-wide transition-all active:from-green-500 active:to-green-700 disabled:opacity-40 shadow-lg"
+          >
+            {middleLabel}
+          </button>
+
+          {/* BET / RAISE / ALL-IN */}
+          <button
+            type="button"
+            onClick={handleRight}
+            disabled={!validActions.bet && !validActions.raise && !validActions.allIn}
+            className="min-h-[52px] rounded-lg bg-gradient-to-b from-amber-500 to-amber-700 border border-amber-400 text-gray-900 font-black text-sm sm:text-base tracking-wide transition-all active:from-amber-400 active:to-amber-600 disabled:opacity-40 shadow-lg"
+          >
+            {rightLabel}
+          </button>
+        </div>
       </div>
     </div>
   );
