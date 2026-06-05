@@ -71,17 +71,18 @@ export function PotDisplay({ amount, sidePots }: PotDisplayProps) {
         </span>
       </div>
 
-      {sidePots && sidePots.length > 0 && (
+      {sidePots && sidePots.length > 1 && (
         <div className="flex gap-1.5 flex-wrap justify-center">
           {sidePots.map((sidePot, i) => {
             const sideAmount = typeof sidePot.amount === 'number' && !isNaN(sidePot.amount) ? sidePot.amount : 0;
+            if (sideAmount <= 0) return null;
             return (
               <span
                 key={i}
                 className="text-[9px] sm:text-xs text-amber-300 bg-gray-900/70 border border-amber-500/30 rounded-full px-2 py-0.5 font-medium"
                 aria-label={`Side pot ${i + 1}: $${sideAmount}`}
               >
-                Side: ${sideAmount.toLocaleString()}
+                Side Pot {i + 1}: ${sideAmount.toLocaleString()}
               </span>
             );
           })}
