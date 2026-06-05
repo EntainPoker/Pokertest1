@@ -147,6 +147,7 @@ export function checkAndStartTournament(gameInstanceId: string): void {
   const gameState: GameState = {
     handState: initialHandState,
     tournament,
+    tableTheme: (game.table_theme as string) || 'classic-green',
   };
 
   // Store game state immediately so late-joining sockets can get it
