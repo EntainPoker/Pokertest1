@@ -89,6 +89,7 @@ router.post('/games', async (req: Request, res: Response) => {
       'admin',
       blindIntervalMinutes || 3,
       startingChips || 500,
+      tableTheme || 'classic-green',
     );
 
     res.status(201).json({ game });
