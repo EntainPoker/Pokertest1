@@ -1018,23 +1018,28 @@ function persistState(gameInstanceId: string, gameState: GameState): void {
 function emitGameState(gameInstanceId: string, gameState: GameState): void {
   const instance = gameLoops.get(gameInstanceId);
   const isShowdown = gameState.handState.bettingRound === 'showdown';
+  
+  // Only reveal cards at ACTUAL showdown (2+ non-folded players)
+  // When winning by fold, cards stay hidden (Rule 222)
+  const nonFoldedCount = gameState.handState.players.filter(p => p.status !== 'folded').length;
+  const shouldRevealCards = isShowdown && nonFoldedCount >= 2;
 
   // Create a sanitized version without hole cards and with safe serializable values
   const sanitizedState: GameState = {
     ...gameState,
-    tableTheme: gameState.tableTheme, // Explicitly preserve table theme
+    tableTheme: gameState.tableTheme,
     handState: {
       ...gameState.handState,
       players: gameState.handState.players.map(p => ({
         ...p,
-        holeCards: isShowdown && p.status !== 'folded' && instance
+        holeCards: shouldRevealCards && p.status !== 'folded' && instance
           ? (instance.playerHoleCards.get(p.playerId) || [])
-          : [], // Hide during normal play, reveal at showdown for non-folded players
+          : [], // Hide during normal play and fold wins
       })),
-      lastAction: null, // Don't send action objects to prevent React render crashes
+      lastAction: null,
       lastActionText: gameState.handState.lastActionText ?? null,
       lastActionPlayerId: gameState.handState.lastActionPlayerId ?? null,
-      turnStartedAt: new Date(), // Always send as fresh Date (serialized to string by Socket.IO)
+      turnStartedAt: new Date(),
       sidePots: (gameState.handState.sidePots || []).map(sp => ({
         amount: typeof sp.amount === 'number' ? sp.amount : 0,
         eligiblePlayerIds: Array.isArray(sp.eligiblePlayerIds) ? sp.eligiblePlayerIds : [],
