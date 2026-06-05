@@ -143,6 +143,14 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   const currentBlindLevel = tournament?.blindSchedule?.[Math.max(0, (tournament?.currentBlindLevel ?? 1) - 1)] ?? null;
   const nextBlindLevel = tournament?.blindSchedule?.[tournament?.currentBlindLevel ?? 0] ?? null;
 
+  // Position labels (BTN, SB, BB, UTG, etc.) — Rule 19, 83
+  const positionLabels = getPositionLabels(
+    players.length,
+    dealerPosition,
+    handState?.smallBlindPosition ?? (dealerPosition + 1) % players.length,
+    handState?.bigBlindPosition ?? (dealerPosition + 2) % players.length
+  );
+
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* ZONE 1: Header — compact single row ~50px */}
