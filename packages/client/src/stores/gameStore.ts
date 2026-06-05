@@ -56,6 +56,7 @@ const initialState = {
   isMyTurn: false,
   myHoleCards: [],
   turnTimeRemaining: 0,
+  turnResetKey: 0,
   gameStatus: 'waiting' as GameStatus,
   tournamentResult: null,
   tableTheme: 'classic-green',
