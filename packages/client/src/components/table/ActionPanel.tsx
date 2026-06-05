@@ -39,8 +39,9 @@ export function ActionPanel({
   const turnResetKey = useGameStore((s) => s.turnResetKey);
 
   // Use the turn timer hook for proper countdown
+  // Always start at 15 when this component renders (it only renders on our turn)
   const { secondsLeft } = useTurnTimer({
-    timeRemaining: turnTimeRemaining,
+    timeRemaining: 15, // Always 15 seconds per action
     onExpire: onTurnExpire || (() => {}),
     isActive: isMyTurn,
     resetKey: turnResetKey,
