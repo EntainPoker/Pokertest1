@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import type { SidePot } from '@spin-and-go/shared';
 
 interface PotDisplayProps {
@@ -6,24 +7,67 @@ interface PotDisplayProps {
 }
 
 /**
- * Compact pot display with gold chip icon and amount.
+ * Pot display with animated number tween (Rule 156).
+ * Pot value animates smoothly — never instantly jumps.
  * Positioned above community cards.
  * Satisfies Requirements 6.6.
  */
 export function PotDisplay({ amount, sidePots }: PotDisplayProps) {
-  // Ensure amount is always a safe number for rendering
   const safeAmount = typeof amount === 'number' && !isNaN(amount) ? amount : 0;
+  const [displayAmount, setDisplayAmount] = useState(safeAmount);
+  const animationRef = useRef<number | null>(null);
+  const prevAmountRef = useRef(safeAmount);
 
-  if (safeAmount === 0 && (!sidePots || sidePots.length === 0)) {
+  // Animate pot value changes (Rule 156: pot growth must visually animate)
+  useEffect(() => {
+    const from = prevAmountRef.current;
+    const to = safeAmount;
+    prevAmountRef.current = to;
+
+    if (from === to) return;
+
+    // Cancel any existing animation
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+
+    const duration = 400; // ms
+    const startTime = performance.now();
+
+    function animate(currentTime: number) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease-out curve
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(from + (to - from) * eased);
+      setDisplayAmount(current);
+
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate);
+      }
+    }
+
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [safeAmount]);
+
+  if (displayAmount === 0 && safeAmount === 0 && (!sidePots || sidePots.length === 0)) {
     return null;
   }
 
   return (
     <div className="flex flex-col items-center gap-1" aria-label={`Pot: $${safeAmount}`}>
-      <div className="bg-gray-900/85 border border-poker-gold/50 rounded-full px-4 py-1 shadow-lg backdrop-blur-sm">
-        <span className="inline-flex items-center gap-1.5 text-poker-gold font-bold text-sm sm:text-base">
+      <div className={`bg-gray-900/85 border border-poker-gold/50 rounded-full px-4 py-1 shadow-lg backdrop-blur-sm transition-transform ${
+        safeAmount > prevAmountRef.current ? 'scale-105' : ''
+      }`}>
+        <span className="inline-flex items-center gap-1.5 text-poker-gold font-bold text-sm sm:text-base tabular-nums">
           <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-gradient-to-br from-poker-gold to-amber-600 border border-yellow-600 shadow-md flex items-center justify-center text-[8px] sm:text-[10px]" aria-hidden="true">🪙</span>
-          Total Pot: ${safeAmount.toLocaleString()}
+          Pot: ${displayAmount.toLocaleString()}
         </span>
       </div>
 
