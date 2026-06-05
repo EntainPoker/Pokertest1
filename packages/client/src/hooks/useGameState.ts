@@ -52,7 +52,7 @@ export function useGameState() {
         return;
       }
 
-      const { handState, tournament } = safePayload;
+      const { handState, tournament, tableTheme } = safePayload;
       handState.lastAction = null;
 
       // Preserve existing hole cards if we already received them via game:deal
@@ -79,6 +79,7 @@ export function useGameState() {
         isMyTurn,
         turnTimeRemaining: handState.turnTimeoutSeconds,
         tournamentResult: null,
+        tableTheme: tableTheme || 'classic-green',
       });
     };
 
