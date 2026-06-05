@@ -128,13 +128,19 @@ export class BettingRound {
         }
         player.status = 'all_in';
         if (player.currentBet > this.currentBet) {
-          // All-in acts as a raise
+          // All-in acts as a raise — but only reopens action if it's a FULL raise
           const allInRaiseIncrement = player.currentBet - this.currentBet;
-          if (allInRaiseIncrement > this.minRaise) {
+          if (allInRaiseIncrement >= this.minRaise) {
+            // Full raise: update minRaise and reopen action for all players
             this.minRaise = allInRaiseIncrement;
+            this.currentBet = player.currentBet;
+            this.resetOtherPlayersActed(playerIndex);
+          } else {
+            // Partial raise (all-in for less than a full raise):
+            // Update current bet but do NOT reopen action for previous callers
+            this.currentBet = player.currentBet;
+            // Do NOT call resetOtherPlayersActed — previous actors cannot re-raise
           }
-          this.currentBet = player.currentBet;
-          this.resetOtherPlayersActed(playerIndex);
         }
         break;
     }
