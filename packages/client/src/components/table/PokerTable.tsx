@@ -108,6 +108,10 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
     if (player.playerId === currentPlayerId) {
       return myHoleCards;
     }
+    // At showdown, show opponent cards if server provided them
+    if (handState?.bettingRound === 'showdown' && player.holeCards && player.holeCards.length > 0) {
+      return player.holeCards;
+    }
     return [];
   };
 
@@ -115,7 +119,12 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   const shouldShowCards = (index: number): boolean => {
     const player = players[index];
     if (!player) return false;
-    return player.playerId === currentPlayerId;
+    if (player.playerId === currentPlayerId) return true;
+    // Show opponent cards at showdown if they have cards
+    if (handState?.bettingRound === 'showdown' && player.holeCards && player.holeCards.length > 0 && player.status !== 'folded') {
+      return true;
+    }
+    return false;
   };
 
   // Simple index-based layout: separate top opponents from bottom (current) player
