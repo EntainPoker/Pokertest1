@@ -256,6 +256,17 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
                     <span className="text-xs sm:text-sm text-gray-100 block text-center">{players[bottomIndex].username}</span>
                     <span className="text-xs sm:text-sm text-poker-gold font-bold block text-center">${players[bottomIndex].chipCount}</span>
                   </div>
+                  {/* Position label for hero */}
+                  {positionLabels.get(bottomIndex) && (
+                    <span className={`text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded mt-0.5 ${
+                      positionLabels.get(bottomIndex) === 'BTN' ? 'bg-white text-gray-900' :
+                      positionLabels.get(bottomIndex) === 'SB' ? 'bg-blue-600/80 text-white' :
+                      positionLabels.get(bottomIndex) === 'BB' ? 'bg-orange-600/80 text-white' :
+                      'bg-gray-700/80 text-gray-300'
+                    }`}>
+                      {positionLabels.get(bottomIndex)}
+                    </span>
+                  )}
                 </div>
                 {/* My hole cards — larger for visibility */}
                 <div className="flex gap-1">
