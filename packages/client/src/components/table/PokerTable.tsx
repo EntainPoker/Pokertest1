@@ -57,13 +57,23 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
     const prevPlayers = prevPlayersRef.current;
     const prevPot = prevPotRef.current;
 
-    // Detect winner: pot went to 0 and a player's chips increased
-    if (prevPot > 0 && pot === 0 && prevPlayers.length > 0) {
+    // Detect winner from showdownResults (Rule 234-235)
+    const showdownResults = (handState as any)?.showdownResults as { winnerId: string; amount: number; handName?: string }[] | undefined;
+    if (showdownResults && showdownResults.length > 0) {
+      const newActions: Record<string, string> = {};
+      for (const result of showdownResults) {
+        const handLabel = result.handName ? ` — ${result.handName}` : '';
+        newActions[result.winnerId] = `WINS $${result.amount}${handLabel}`;
+      }
+      setPlayerActions(newActions);
+    } else if (prevPot > 0 && pot === 0 && prevPlayers.length > 0) {
+      // Fallback: detect winner from chip increase
       const newActions: Record<string, string> = {};
       for (const p of players) {
         const prev = prevPlayers.find(pp => pp.playerId === p.playerId);
         if (prev && p.chipCount > prev.chipCount) {
-          newActions[p.playerId] = '__WINNER__';
+          const winAmount = p.chipCount - prev.chipCount;
+          newActions[p.playerId] = `WINS $${winAmount}`;
         }
       }
       if (Object.keys(newActions).length > 0) {
@@ -71,8 +81,8 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
       }
     }
 
-    // Use server-provided action text (accurate, no guessing)
-    if (handState?.lastActionText && handState?.lastActionPlayerId) {
+    // Use server-provided action text (accurate, no guessing) during non-showdown
+    if (handState?.bettingRound !== 'showdown' && handState?.lastActionText && handState?.lastActionPlayerId) {
       setPlayerActions(prev => ({
         ...prev,
         [handState.lastActionPlayerId!]: handState.lastActionText!,
@@ -81,7 +91,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
 
     prevPlayersRef.current = players;
     prevPotRef.current = pot;
-  }, [players, pot, handState?.lastActionText, handState?.lastActionPlayerId]);
+  }, [players, pot, handState?.lastActionText, handState?.lastActionPlayerId, handState?.bettingRound]);
 
   // Ensure pot is always a number (never an object) to prevent React Error #300
   const safePot = typeof pot === 'number' && !isNaN(pot) ? pot : 0;
