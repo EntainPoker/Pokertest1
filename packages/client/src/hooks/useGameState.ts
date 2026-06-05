@@ -124,7 +124,7 @@ export function useGameState() {
         return; // If serialization fails, skip this update
       }
 
-      const { handState, tournament } = sanitizedPayload;
+      const { handState, tournament, tableTheme } = sanitizedPayload;
 
       // Ensure currentPlayerIndex is within bounds
       const safeCurrentPlayerIndex =
@@ -148,6 +148,7 @@ export function useGameState() {
         myHoleCards: existingHoleCards,
         isMyTurn,
         turnTimeRemaining: handState.turnTimeoutSeconds,
+        tableTheme: tableTheme || useGameStore.getState().tableTheme || 'classic-green',
       });
     };
 

@@ -17,6 +17,8 @@ interface PokerTableProps {
   turnTimeRemaining?: number;
   /** Tournament data for the header */
   tournament?: Tournament;
+  /** Table theme (gradient color scheme) */
+  tableTheme?: string;
   /** Navigate back to lobby */
   onBackToLobby?: () => void;
   /** Show tournament lobby overlay */
@@ -29,7 +31,7 @@ interface PokerTableProps {
  *
  * Satisfies Requirements 6.1, 6.2, 6.3, 6.5, 6.6, 6.7, 6.8, 13.1.
  */
-export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaining = 30, tournament, onBackToLobby, onShowTournament }: PokerTableProps) {
+export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaining = 30, tournament, tableTheme, onBackToLobby, onShowTournament }: PokerTableProps) {
   const { players = [], communityCards = [], pot = 0, sidePots = [], dealerPosition = 0, currentPlayerIndex = 0 } = handState || {};
   const [showLastHand, setShowLastHand] = useState(false);
   const myHoleCards = useGameStore((s) => s.myHoleCards);

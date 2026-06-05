@@ -158,6 +158,8 @@ export function GamePage() {
     lastHandStateRef.current = handState;
   }
 
+  const tableTheme = useGameStore((s) => s.tableTheme);
+
   // Show results overlay when game ends
   if (showResults && tournamentResult) {
     const myResult = tournamentResult.standings?.find(
@@ -237,6 +239,7 @@ export function GamePage() {
           gameId={gameId}
           turnTimeRemaining={turnTimeRemaining}
           tournament={tournament}
+          tableTheme={tableTheme}
           onBackToLobby={handleBackToLobby}
           onShowTournament={() => setShowTournamentLobby(true)}
         />
