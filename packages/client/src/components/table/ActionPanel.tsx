@@ -35,11 +35,15 @@ export function ActionPanel({
   // Find the player's data
   const myPlayer = players.find((p) => p.playerId === currentPlayerId);
 
+  // Get the reset key from store — increments on every new turn
+  const turnResetKey = useGameStore((s) => s.turnResetKey);
+
   // Use the turn timer hook for proper countdown
   const { secondsLeft } = useTurnTimer({
     timeRemaining: turnTimeRemaining,
     onExpire: onTurnExpire || (() => {}),
     isActive: isMyTurn,
+    resetKey: turnResetKey,
   });
 
   // Determine valid actions
