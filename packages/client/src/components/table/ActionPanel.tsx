@@ -16,9 +16,9 @@ interface ActionPanelProps {
 }
 
 /**
- * Ultra-compact mobile action panel — slider + 3 buttons in one row.
- * No presets, no +/- buttons, no timer display. ~80px max height.
- * Only visible when it's the current player's turn.
+ * Ultra-compact mobile action panel — slider + 3 buttons.
+ * No presets, no +/- buttons. ~120px max height when visible.
+ * Returns null when it's not the current player's turn.
  * Satisfies Requirements 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 7.10, 13.2.
  */
 export function ActionPanel({
@@ -120,7 +120,7 @@ export function ActionPanel({
 
   const showAmountInput = validActions.bet || validActions.raise;
 
-  // Preset raise amounts (must be above early return to respect hooks rule)
+  // Preset raise amounts (kept for hook ordering — not rendered)
   const presets = useMemo(() => {
     const base = validActions.raise ? currentBet : 0;
     const min = minRaise || 20;
@@ -143,10 +143,7 @@ export function ActionPanel({
   }
 
   // Determine which buttons to show — always 3 columns
-  // Left: Fold (or Check/Fold if can check)
-  // Middle: Check or Call
-  // Right: Bet or Raise (with slider amount)
-  const leftLabel = validActions.check ? 'Check/Fold' : 'Fold';
+  const leftLabel = 'Fold';
   const middleLabel = validActions.call ? `Call $${callAmount}` : 'Check';
   const rightLabel = validActions.raise
     ? `Raise $${betAmount}`
@@ -154,7 +151,7 @@ export function ActionPanel({
     ? `Bet $${betAmount}`
     : `All-In $${myPlayer.chipCount}`;
 
-  const handleLeft = validActions.check ? handleFold : handleFold;
+  const handleLeft = handleFold;
   const handleMiddle = validActions.call ? handleCall : handleCheck;
   const handleRight = validActions.raise
     ? handleRaise
@@ -163,25 +160,29 @@ export function ActionPanel({
     : handleAllIn;
 
   return (
-    <div className="shrink-0 bg-gray-900 px-2 py-2 border-t border-gray-700">
+    <div className="shrink-0 bg-gray-900 px-2 pt-1 pb-[env(safe-area-inset-bottom,4px)] border-t border-gray-700">
       {/* Slider row — only show if bet/raise available */}
       {showAmountInput && (
-        <input
-          type="range"
-          min={betMin}
-          max={betMax}
-          value={betAmount}
-          onChange={(e) => setBetAmount(parseInt(e.target.value, 10))}
-          className="w-full h-1 mb-1 bg-gray-700 rounded appearance-none cursor-pointer accent-poker-gold"
-          aria-label="Bet amount slider"
-        />
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-[10px] text-gray-400 shrink-0">${betMin}</span>
+          <input
+            type="range"
+            min={betMin}
+            max={betMax}
+            value={betAmount}
+            onChange={(e) => setBetAmount(parseInt(e.target.value, 10))}
+            className="flex-1 h-1.5 accent-poker-gold bg-gray-700 rounded appearance-none cursor-pointer"
+            aria-label="Bet amount slider"
+          />
+          <span className="text-[10px] text-poker-gold font-bold shrink-0">${betAmount}</span>
+        </div>
       )}
       {/* Button row: 3 buttons, equal width */}
-      <div className="flex gap-1">
+      <div className="grid grid-cols-3 gap-1.5">
         <button
           type="button"
           onClick={handleLeft}
-          className="flex-1 min-h-[40px] h-10 rounded-lg bg-gray-800 border border-gray-600 text-gray-200 font-semibold text-xs transition-all active:bg-gray-700"
+          className="min-h-[40px] rounded-lg bg-gray-800 border border-gray-600 text-red-400 font-bold text-xs transition-all active:bg-gray-700"
         >
           {leftLabel}
         </button>
@@ -189,7 +190,7 @@ export function ActionPanel({
           type="button"
           onClick={handleMiddle}
           disabled={!validActions.check && !validActions.call}
-          className="flex-1 min-h-[40px] h-10 rounded-lg bg-gradient-to-b from-green-600 to-green-700 text-white font-bold text-xs transition-all active:from-green-500 active:to-green-600 disabled:opacity-40"
+          className="min-h-[40px] rounded-lg bg-gradient-to-b from-green-600 to-green-700 text-white font-bold text-xs transition-all active:from-green-500 active:to-green-600 disabled:opacity-40"
         >
           {middleLabel}
         </button>
@@ -197,7 +198,7 @@ export function ActionPanel({
           type="button"
           onClick={handleRight}
           disabled={!validActions.bet && !validActions.raise && !validActions.allIn}
-          className="flex-1 min-h-[40px] h-10 rounded-lg bg-gradient-to-b from-blue-600 to-blue-700 text-white font-bold text-xs transition-all active:from-blue-500 active:to-blue-600 disabled:opacity-40"
+          className="min-h-[40px] rounded-lg bg-gradient-to-b from-amber-500 to-amber-600 text-gray-900 font-bold text-xs transition-all active:from-amber-400 active:to-amber-500 disabled:opacity-40"
         >
           {rightLabel}
         </button>
