@@ -16,7 +16,7 @@ router.use(authMiddleware);
  */
 router.post('/games', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { name, maxPlayers } = req.body as GameCreationRequest;
+    const { name, maxPlayers, blindIntervalMinutes, maxBlindLevel, startingChips, tableTheme } = req.body as GameCreationRequest;
     const createdBy = req.player!.playerId;
 
     // Validate parameters before creating
@@ -30,7 +30,13 @@ router.post('/games', async (req: AuthenticatedRequest, res: Response) => {
       return;
     }
 
-    const game = await adminService.createGameInstance(name, maxPlayers, createdBy);
+    const game = await adminService.createGameInstance(
+      name,
+      maxPlayers,
+      createdBy,
+      blindIntervalMinutes || 3,
+      startingChips || 500,
+    );
 
     res.status(201).json({ game });
   } catch (error) {
