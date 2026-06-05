@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 interface UseTurnTimerOptions {
-  /** Time remaining in seconds (from server) */
+  /** Time remaining in seconds (from server — always 15 for a fresh turn) */
   timeRemaining: number;
   /** Callback when timer expires (auto-fold/auto-check) */
   onExpire: () => void;
@@ -12,16 +12,16 @@ interface UseTurnTimerOptions {
 }
 
 interface UseTurnTimerResult {
-  /** Current seconds remaining */
+  /** Current seconds remaining (counts down 15, 14, 13... 0) */
   secondsLeft: number;
   /** Whether the timer has expired */
   isExpired: boolean;
 }
 
 /**
- * Hook for managing the turn timer countdown.
- * CRITICAL: Timer resets to full 15s on EVERY new turn.
- * Uses resetKey to detect new turns even when timeRemaining stays at 15.
+ * Turn timer that counts down from 15 to 0.
+ * Resets to 15 on every new turn (detected via resetKey change).
+ * Fires onExpire when it hits 0.
  */
 export function useTurnTimer({
   timeRemaining,
@@ -34,56 +34,48 @@ export function useTurnTimer({
   const onExpireRef = useRef(onExpire);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Keep onExpire ref up to date
   useEffect(() => {
     onExpireRef.current = onExpire;
   }, [onExpire]);
 
-  // RESET timer whenever resetKey changes (new turn) or timeRemaining changes
+  // Clear interval helper
+  const clearTimer = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  // When resetKey or isActive changes: reset and start/stop the countdown
   useEffect(() => {
+    clearTimer();
+
+    // Reset to full time
     setSecondsLeft(timeRemaining);
     setIsExpired(false);
-    // Clear any running interval so the countdown effect restarts fresh
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-  }, [resetKey, timeRemaining]);
 
-  // Run the countdown
-  useEffect(() => {
-    // Clean up any existing interval
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    if (!isActive || isExpired || secondsLeft <= 0) {
+    // Only start counting if it's our turn
+    if (!isActive || timeRemaining <= 0) {
       return;
     }
 
+    // Start countdown from timeRemaining
+    let current = timeRemaining;
+
     intervalRef.current = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          setIsExpired(true);
-          if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-            intervalRef.current = null;
-          }
-          onExpireRef.current();
-          return 0;
-        }
-        return prev - 1;
-      });
+      current -= 1;
+      if (current <= 0) {
+        setSecondsLeft(0);
+        setIsExpired(true);
+        clearTimer();
+        onExpireRef.current();
+      } else {
+        setSecondsLeft(current);
+      }
     }, 1000);
 
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [isActive, isExpired, secondsLeft]);
+    return clearTimer;
+  }, [isActive, resetKey, timeRemaining, clearTimer]);
 
   return { secondsLeft, isExpired };
 }
