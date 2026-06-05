@@ -116,9 +116,9 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
         </span>
       )}
 
-      {/* Bet chip indicator — gold pill with amount */}
+      {/* Bet chip indicator — gold pill with amount, animates in on bet (Rule 253) */}
       {typeof player.currentBet === 'number' && player.currentBet > 0 && (
-        <span className="flex items-center gap-0.5 bg-gradient-to-r from-yellow-500 to-amber-600 text-gray-900 text-[9px] sm:text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
+        <span className="flex items-center gap-0.5 bg-gradient-to-r from-yellow-500 to-amber-600 text-gray-900 text-[9px] sm:text-xs font-bold px-2 py-0.5 rounded-full shadow-md animate-slide-in">
           <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none">
             <circle cx="6" cy="6" r="5" fill="#fbbf24" stroke="#92400e" strokeWidth="1"/>
             <circle cx="6" cy="6" r="3" fill="#f59e0b"/>
