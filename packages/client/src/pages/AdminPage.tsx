@@ -65,13 +65,6 @@ export function AdminPage() {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => navigate('/lobby')}
-              className="min-h-[44px] px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-            >
-              Player Lobby
-            </button>
-            <button
-              type="button"
               onClick={handleSignOut}
               className="min-h-[44px] px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
               aria-label="Sign out"

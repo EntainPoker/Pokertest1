@@ -1,6 +1,5 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import { authMiddleware, AuthenticatedRequest } from '../middleware/auth.js';
 import { query } from '../config/database.js';
 import * as adminService from '../services/adminService.js';
 import type { GameCreationRequest } from '@spin-and-go/shared';
@@ -62,19 +61,16 @@ router.get('/players', async (_req: Request, res: Response) => {
 });
 
 // ──────────────────────────────────────────────────────────────────
-// Game management endpoints (require player auth for backward compat)
+// Game management endpoints (no player auth — admin uses own auth)
 // ──────────────────────────────────────────────────────────────────
 
 /**
  * POST /api/admin/games
  * Create a new game instance.
- * Validates name (non-empty) and maxPlayers (2-6).
- * Auto-sets: format=texas_holdem, blindIntervalMinutes=3, startingChips=500, buyIn=1, endDate=NOW()+30 days, status=open.
  */
-router.post('/games', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/games', async (req: Request, res: Response) => {
   try {
     const { name, maxPlayers, blindIntervalMinutes, maxBlindLevel, startingChips, tableTheme } = req.body as GameCreationRequest;
-    const createdBy = req.player!.playerId;
 
     // Validate parameters before creating
     const validation = adminService.validateGameCreationParams(name, maxPlayers);
@@ -87,10 +83,10 @@ router.post('/games', authMiddleware, async (req: AuthenticatedRequest, res: Res
       return;
     }
 
-    const game = await adminService.createGameInstance(
+    const game = adminService.createGameInstance(
       name,
       maxPlayers,
-      createdBy,
+      'admin',
       blindIntervalMinutes || 3,
       startingChips || 500,
     );
@@ -110,10 +106,10 @@ router.post('/games', authMiddleware, async (req: AuthenticatedRequest, res: Res
  * GET /api/admin/games
  * List all game instances. Supports optional ?status= query param filter.
  */
-router.get('/games', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+router.get('/games', async (req: Request, res: Response) => {
   try {
     const statusFilter = req.query.status as string | undefined;
-    const games = await adminService.listGameInstances(statusFilter);
+    const games = adminService.listGameInstances(statusFilter);
 
     res.status(200).json({ games });
   } catch (error) {
@@ -128,13 +124,13 @@ router.get('/games', authMiddleware, async (req: AuthenticatedRequest, res: Resp
 
 /**
  * DELETE /api/admin/games/:id
- * Remove a game instance. If it has registrations, unregisters players and refunds buy-ins first.
+ * Remove a game instance.
  */
-router.delete('/games/:id', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+router.delete('/games/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    await adminService.removeGameInstance(id);
+    adminService.removeGameInstance(id);
 
     res.status(200).json({ message: 'Game instance removed successfully' });
   } catch (error) {
