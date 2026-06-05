@@ -150,8 +150,8 @@ export function ActionPanel({
   const timerProgress = Math.max(0, Math.min(100, (secondsLeft / timerMax) * 100));
   const isTimerUrgent = secondsLeft <= 5 && secondsLeft > 0;
 
-  // Don't render if it's not the player's turn
-  if (!isMyTurn || !myPlayer || myPlayer.status !== 'active') {
+  // Don't render if it's not the player's turn OR if it's showdown
+  if (!isMyTurn || !myPlayer || myPlayer.status !== 'active' || handState.bettingRound === 'showdown') {
     return null;
   }
 
