@@ -238,6 +238,7 @@ export function GamePage() {
           turnTimeRemaining={turnTimeRemaining}
           tournament={tournament}
           onBackToLobby={handleBackToLobby}
+          onShowTournament={() => setShowTournamentLobby(true)}
         />
       </ErrorBoundary>
 
