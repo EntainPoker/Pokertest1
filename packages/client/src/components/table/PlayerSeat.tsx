@@ -23,7 +23,7 @@ interface PlayerSeatProps {
  * Shows bet chips prominently and last action badge.
  * Satisfies Requirements 6.1, 6.2, 6.5, 6.8.
  */
-export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = [], lastAction, isWinner }: PlayerSeatProps) {
+export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = [], lastAction, isWinner, positionLabel }: PlayerSeatProps) {
   const isFolded = player.status === 'folded';
   const isAllIn = player.status === 'all_in';
   const firstLetter = player.username.charAt(0).toUpperCase();
