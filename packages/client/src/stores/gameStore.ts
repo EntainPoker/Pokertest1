@@ -20,6 +20,8 @@ export interface GameState {
   myHoleCards: Card[];
   /** Seconds remaining for the current turn */
   turnTimeRemaining: number;
+  /** Increments on every new turn — used to force timer reset even when value stays 15 */
+  turnResetKey: number;
   /** Overall game status */
   gameStatus: GameStatus;
   /** Final tournament result when game ends */
