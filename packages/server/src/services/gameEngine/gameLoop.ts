@@ -695,6 +695,50 @@ function completeHand(gameInstanceId: string): void {
     }
   }
 
+  // Save hand history to database
+  try {
+    const handId = `${gameInstanceId}-hand-${instance.handNumber}`;
+    const players = handState.players.map(p => ({
+      playerId: p.playerId,
+      username: p.username,
+      startingChips: instance.startingChipCounts.get(p.playerId) ?? 0,
+      holeCards: instance.playerHoleCards.get(p.playerId) ?? null,
+      netChipChange: p.chipCount - (instance.startingChipCounts.get(p.playerId) ?? p.chipCount),
+    }));
+
+    // Determine winner(s)
+    const winnerPlayer = handState.players.reduce((prev, curr) =>
+      curr.chipCount > prev.chipCount ? curr : prev
+    , handState.players[0]);
+
+    const activePlayers = handState.players.filter(p => p.status !== 'folded');
+    const method = activePlayers.length === 1 ? 'fold' : 'showdown';
+
+    const result = JSON.stringify({
+      winnerId: winnerPlayer.playerId,
+      winningHand: null,
+      method,
+    });
+
+    const potTotal = handState.players.reduce((sum, p) => sum + p.totalBetThisHand, 0);
+
+    query(
+      'INSERT INTO hand_histories (id, tournament_id, hand_number, community_cards, actions, players, result, pot_total, played_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime(\'now\'))',
+      [
+        handId,
+        tournament.id,
+        instance.handNumber,
+        JSON.stringify(handState.communityCards),
+        JSON.stringify(instance.handActions),
+        JSON.stringify(players),
+        result,
+        potTotal,
+      ]
+    );
+  } catch (err) {
+    console.error('[GameLoop] Failed to save hand history:', err);
+  }
+
   // Check for eliminations
   const eliminationPlayers = handState.players.map(hp => ({
     playerId: hp.playerId,
