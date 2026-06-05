@@ -116,13 +116,19 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   const getHoleCards = (index: number): CardType[] => {
     const player = players[index];
     if (!player) return [];
+    
+    // Only show hero's own cards during normal play
     if (player.playerId === currentPlayerId) {
       return myHoleCards;
     }
-    // At showdown, show opponent cards if server provided them
-    if (handState?.bettingRound === 'showdown' && player.holeCards && player.holeCards.length > 0) {
+    
+    // Opponents: ONLY show at showdown if they haven't folded (Rule 16, 221)
+    // Never show opponent cards if they folded — cards are mucked
+    if (handState?.bettingRound === 'showdown' && player.status !== 'folded' && player.holeCards && player.holeCards.length > 0) {
       return player.holeCards;
     }
+    
+    // All other cases: opponent cards hidden
     return [];
   };
 
@@ -130,11 +136,16 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   const shouldShowCards = (index: number): boolean => {
     const player = players[index];
     if (!player) return false;
+    
+    // Hero always sees their own cards
     if (player.playerId === currentPlayerId) return true;
-    // Show opponent cards at showdown if they have cards
-    if (handState?.bettingRound === 'showdown' && player.holeCards && player.holeCards.length > 0 && player.status !== 'folded') {
+    
+    // Opponents: only face-up at showdown if not folded
+    if (handState?.bettingRound === 'showdown' && player.status !== 'folded' && player.holeCards && player.holeCards.length > 0) {
       return true;
     }
+    
+    // All other cases: face down
     return false;
   };
 
