@@ -265,7 +265,7 @@ function processBet(
   return {
     success: true,
     updatedPlayer,
-    processedAction: { type: 'bet', amount: player.currentBet + amount },
+    processedAction: { type: 'bet', amount: updatedPlayer.currentBet },
   };
 }
 
