@@ -678,8 +678,10 @@ function handleShowdown(gameInstanceId: string): void {
   (handState as any).showdownResults = potResults;
 
   // Update hand state
+  // Only store side pots if there are MULTIPLE pots (actual side pot scenario)
+  // A single pot is just the main pot — no need to show "Side:" display
   handState.pot = 0;
-  handState.sidePots = pots;
+  handState.sidePots = pots.length > 1 ? pots : [];
 
   // Persist and emit
   persistState(gameInstanceId, gameState);
