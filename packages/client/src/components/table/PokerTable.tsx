@@ -228,6 +228,8 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
             {topIndices.map((idx) => {
               const p = players[idx];
               if (!p) return null;
+              const actionText = playerActions[p.playerId];
+              const isPlayerWinner = actionText?.startsWith('WINS');
               return (
                 <PlayerSeat
                   key={p.playerId}
@@ -236,8 +238,8 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
                   isDealer={dealerPosition === idx}
                   showCards={shouldShowCards(idx)}
                   holeCards={getHoleCards(idx)}
-                  lastAction={playerActions[p.playerId] === '__WINNER__' ? undefined : playerActions[p.playerId]}
-                  isWinner={playerActions[p.playerId] === '__WINNER__'}
+                  lastAction={isPlayerWinner ? actionText : actionText}
+                  isWinner={isPlayerWinner}
                   positionLabel={positionLabels.get(idx)}
                 />
               );
