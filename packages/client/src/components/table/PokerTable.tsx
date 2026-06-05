@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { HandState, PlayerAction, Card as CardType } from '@spin-and-go/shared';
+import type { HandState, PlayerAction, Card as CardType, Tournament } from '@spin-and-go/shared';
 import { PlayerSeat } from './PlayerSeat';
 import { CommunityCards } from './CommunityCards';
 import { PotDisplay } from './PotDisplay';
@@ -15,16 +15,21 @@ interface PokerTableProps {
   gameId?: string;
   /** Turn time remaining in seconds (from game state) */
   turnTimeRemaining?: number;
+  /** Tournament data for the header */
+  tournament?: Tournament;
+  /** Navigate back to lobby */
+  onBackToLobby?: () => void;
+  /** Show tournament lobby overlay */
+  onShowTournament?: () => void;
 }
 
 /**
  * Main poker table layout — mobile-first, fits 100dvh with no scroll.
- * Single green table area: opponents at top, pot+community in center, my player at bottom.
- * Action panel sits below the green table as a compact bar.
+ * Three-zone layout: Header, Table area, Betting controls.
  *
  * Satisfies Requirements 6.1, 6.2, 6.3, 6.5, 6.6, 6.7, 6.8, 13.1.
  */
-export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaining = 30 }: PokerTableProps) {
+export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaining = 30, tournament, onBackToLobby, onShowTournament }: PokerTableProps) {
   const { players = [], communityCards = [], pot = 0, sidePots = [], dealerPosition = 0, currentPlayerIndex = 0 } = handState || {};
   const [showLastHand, setShowLastHand] = useState(false);
   const myHoleCards = useGameStore((s) => s.myHoleCards);
@@ -76,28 +81,69 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   // Bottom player: the current player (or fallback to last player if not found)
   const bottomIndex = myIndex >= 0 ? myIndex : players.length - 1;
 
+  // Blind info for header
+  const currentBlindLevel = tournament?.blindSchedule?.[Math.max(0, (tournament?.currentBlindLevel ?? 1) - 1)] ?? null;
+  const nextBlindLevel = tournament?.blindSchedule?.[tournament?.currentBlindLevel ?? 0] ?? null;
+
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden">
-      {/* Last Hand button */}
-      {gameId && (
+    <div className="h-full flex flex-col overflow-hidden">
+      {/* ZONE 1: Header — compact single row ~50px */}
+      <div className="shrink-0 flex items-center justify-between px-2 py-1 bg-gray-800 border-b border-gray-700 max-h-[50px]">
+        {/* Left: Back to lobby */}
         <button
-          onClick={() => setShowLastHand(true)}
-          className="absolute top-2 left-2 z-20 min-w-[44px] min-h-[44px] px-2 py-1.5 rounded-lg bg-gray-800/90 border border-gray-700/50 text-gray-300 text-[10px] font-medium hover:bg-gray-700 hover:text-white transition-all shadow-md"
-          aria-label="View last hand history"
+          type="button"
+          onClick={onBackToLobby}
+          className="text-[11px] text-gray-300 hover:text-white px-1.5 py-1 rounded"
         >
-          Last Hand
+          ← Lobby
         </button>
-      )}
+
+        {/* Center: Blind info */}
+        <div className="flex items-center gap-1 text-[10px] text-gray-300">
+          {currentBlindLevel ? (
+            <span>
+              Lvl {currentBlindLevel.level} • {currentBlindLevel.smallBlind}/{currentBlindLevel.bigBlind}
+              {turnTimeRemaining !== undefined && <span> • {turnTimeRemaining}s</span>}
+              {nextBlindLevel && <span> • Next: {nextBlindLevel.smallBlind}/{nextBlindLevel.bigBlind}</span>}
+            </span>
+          ) : (
+            <span className="text-gray-500">—</span>
+          )}
+        </div>
+
+        {/* Right: Tournament button + Last Hand */}
+        <div className="flex items-center gap-1">
+          {gameId && (
+            <button
+              onClick={() => setShowLastHand(true)}
+              className="text-[10px] text-gray-400 hover:text-white px-1 py-0.5 rounded"
+              aria-label="View last hand history"
+            >
+              History
+            </button>
+          )}
+          {tournament && onShowTournament && (
+            <button
+              type="button"
+              onClick={onShowTournament}
+              className="text-[10px] text-poker-gold border border-poker-gold/40 px-1.5 py-0.5 rounded hover:bg-poker-gold/10"
+              aria-label="Open tournament lobby"
+            >
+              Tourney
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Last Hand overlay */}
       {showLastHand && gameId && (
         <LastHandSummary gameId={gameId} onClose={() => setShowLastHand(false)} />
       )}
 
-      {/* GREEN TABLE — fills all available space */}
-      <div className="flex-1 min-h-0 flex flex-col items-center justify-between px-2 pt-4 pb-2 bg-gradient-to-b from-green-900 via-emerald-900 to-green-950 relative">
-        {/* Opponents row */}
-        <div className={`relative z-10 flex ${topIndices.length === 1 ? 'justify-center' : 'justify-center gap-3'} w-full`}>
+      {/* ZONE 2: Table area — fills remaining space */}
+      <div className="flex-1 min-h-0 flex flex-col justify-between bg-gradient-to-b from-green-900 via-emerald-900 to-green-950 px-2 py-1">
+        {/* Top: Opponents */}
+        <div className={`flex ${topIndices.length === 1 ? 'justify-center' : 'justify-center gap-2'} w-full`}>
           {topIndices.map((idx) => {
             const p = players[idx];
             if (!p) return null;
@@ -114,27 +160,28 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
           })}
         </div>
 
-        {/* Center area: pot + community cards */}
-        <div className="relative z-10 flex flex-col items-center gap-1">
+        {/* Middle: Pot + Community cards */}
+        <div className="flex flex-col items-center gap-1">
           <PotDisplay amount={safePot} sidePots={safeSidePots} />
           <CommunityCards cards={communityCards} />
         </div>
 
-        {/* MY PLAYER — at the bottom of the green table area */}
-        <div className="relative z-10 flex items-center justify-center gap-2 mt-auto pb-1">
+        {/* Bottom: My avatar + my cards */}
+        <div className="flex items-center justify-center gap-2 pb-1">
           {players[bottomIndex] && (
             <div className="flex items-center gap-2">
               <div className="flex flex-col items-center">
                 {dealerPosition === bottomIndex && (
-                  <span className="w-4 h-4 rounded-full bg-white text-gray-900 text-[8px] font-black flex items-center justify-center shadow-sm border border-gray-300 mb-0.5">D</span>
+                  <span className="w-3.5 h-3.5 rounded-full bg-white text-gray-900 text-[7px] font-black flex items-center justify-center shadow-sm border border-gray-300 mb-0.5">D</span>
                 )}
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-md bg-gradient-to-br from-blue-500 to-blue-700 ${currentPlayerIndex === bottomIndex ? 'ring-2 ring-poker-gold' : 'ring-1 ring-gray-600/50'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md bg-gradient-to-br from-blue-500 to-blue-700 ${currentPlayerIndex === bottomIndex ? 'ring-2 ring-poker-gold' : 'ring-1 ring-gray-600/50'}`}>
                   {players[bottomIndex].username.charAt(0).toUpperCase()}
                 </div>
-                <span className="text-[8px] text-gray-300">{players[bottomIndex].username}</span>
+                <span className="text-[8px] text-gray-300 mt-0.5">{players[bottomIndex].username}</span>
                 <span className="text-[9px] text-poker-gold font-bold">${players[bottomIndex].chipCount}</span>
               </div>
-              <div className="flex gap-0.5">
+              {/* My hole cards — larger for visibility */}
+              <div className="flex gap-0.5 [&>div]:w-10 [&>div]:h-14 [&>div]:text-xs">
                 {getHoleCards(bottomIndex).length > 0
                   ? getHoleCards(bottomIndex).map((card, i) => (
                       <Card key={i} rank={card.rank} suit={card.suit} />
@@ -151,7 +198,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
         </div>
       </div>
 
-      {/* ACTION PANEL — compact bar at the bottom */}
+      {/* ZONE 3: Betting controls */}
       <div className="shrink-0 w-full">
         <ActionPanel
           handState={handState}
