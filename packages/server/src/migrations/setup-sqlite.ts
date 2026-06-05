@@ -96,5 +96,10 @@ export function runSQLiteMigrations(): void {
     CREATE INDEX IF NOT EXISTS idx_admin_accounts_username ON admin_accounts (username);
   `);
 
+  // Add table_theme column if it doesn't exist (migration-safe)
+  try {
+    db.exec("ALTER TABLE game_instances ADD COLUMN table_theme TEXT DEFAULT 'classic-green'");
+  } catch { /* column already exists */ }
+
   console.log('SQLite database tables created successfully.');
 }
