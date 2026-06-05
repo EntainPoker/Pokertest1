@@ -89,7 +89,8 @@ const PORT = process.env.PORT || 4000;
 // Socket.IO connection handling
 io.on('connection', (socket) => {
   let currentPlayerId: string | null = null;
-  let currentGameId: string | null = null;
+  /** Set of game rooms this socket has joined */
+  const joinedGames = new Set<string>();
 
   // Handle lobby subscription
   socket.on('lobby:subscribe', () => {
@@ -103,10 +104,10 @@ io.on('connection', (socket) => {
   // Handle game join — track player connection and join room
   socket.on('game:join', (data: { gameId: string; playerId?: string }) => {
     const { gameId, playerId } = data;
-    currentGameId = gameId;
 
     // Join the game room
     socket.join(`game:${gameId}`);
+    joinedGames.add(gameId);
 
     // Track player connection if playerId provided
     if (playerId) {
@@ -140,21 +141,49 @@ io.on('connection', (socket) => {
   // Handle game:resync — re-emit current state if available
   socket.on('game:resync', (data: { gameId: string }) => {
     socket.join(`game:${data.gameId}`);
+    joinedGames.add(data.gameId);
   });
 
   // Handle game:action — player submits an action
   socket.on('game:action', (data: { gameId: string; playerId: string; action: PlayerAction }) => {
+    // Validate required fields
+    if (!data.gameId || !data.playerId || !data.action) {
+      return;
+    }
+    // Rate limit: ignore duplicate rapid actions (debounce 200ms)
+    const now = Date.now();
+    const lastActionKey = `${data.playerId}:${data.gameId}`;
+    const lastTime = actionTimestamps.get(lastActionKey) || 0;
+    if (now - lastTime < 200) {
+      return; // Ignore duplicate spam
+    }
+    actionTimestamps.set(lastActionKey, now);
+
     // Route action to the game loop engine
     handlePlayerAction(data.gameId, data.playerId, data.action);
   });
 
-  // Handle disconnect
+  // Handle disconnect — don't remove player connections for in-progress games
+  // The server turn timer handles timeouts; player can reconnect
   socket.on('disconnect', () => {
+    // Only remove from playerConnections if the game is NOT in progress
+    // This prevents the "auto-fold on navigate away" issue
     if (currentPlayerId) {
-      playerConnections.delete(currentPlayerId);
+      const connection = playerConnections.get(currentPlayerId);
+      if (connection) {
+        const gameState = activeGameStates.get(connection.gameInstanceId);
+        if (!gameState || gameState.tournament.status !== 'active') {
+          playerConnections.delete(currentPlayerId);
+        }
+        // If game is active, keep the connection entry so turn timer handles timeout
+        // Player can reconnect and their socketId will be updated
+      }
     }
   });
 });
+
+/** Rate-limiting map for action spam prevention */
+const actionTimestamps = new Map<string, number>();
 
 httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
