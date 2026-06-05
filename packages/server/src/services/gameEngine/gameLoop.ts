@@ -10,7 +10,13 @@ import { PositionManager } from './positionManager.js';
 import { processPlayerAction, TurnTimer } from './actionProcessor.js';
 import { BlindManager } from './blindManager.js';
 import { checkEliminations, checkTournamentComplete } from './tournamentElimination.js';
-import type { GameState, PlayerAction } from '@spin-and-go/shared';
+import type {
+  GameState,
+  HandState,
+  HandPlayer,
+  Card,
+  PlayerAction,
+} from '@spin-and-go/shared';
 
 // ============================================================
 // Types
