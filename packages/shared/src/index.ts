@@ -27,6 +27,7 @@ export interface GameInstance {
   createdAt: Date;
   endDate: Date;
   createdBy: string;
+  tableTheme?: string;
 }
 
 /** A tournament spawned from a game instance */
@@ -218,6 +219,7 @@ export interface LobbyUpdatePayload {
 export interface GameState {
   handState: HandState;
   tournament: Tournament;
+  tableTheme?: string;
 }
 
 export interface GameDealPayload {
