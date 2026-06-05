@@ -5,7 +5,6 @@ import { useAuth } from '../hooks/useAuth';
 import { useSocket } from '../hooks/useSocket';
 import { PokerTable } from '../components/table/PokerTable';
 import { TournamentLobby } from '../components/tournament/TournamentLobby';
-import { BlindTimer } from '../components/table/BlindTimer';
 import { ErrorBoundary } from '../components/shared/ErrorBoundary';
 import { useGameStore } from '../stores/gameStore';
 import { apiFetch } from '../services/api';
