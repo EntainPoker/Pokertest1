@@ -143,21 +143,40 @@ export function ActionPanel({
   }
 
   // Determine which buttons to show — always 3 columns
+  // If player's chips can't cover minimum raise, show All-In instead of Raise
+  const canAffordMinRaise = myPlayer.chipCount >= (betMin - (myPlayer.currentBet || 0));
+  const effectiveBetAmount = Math.min(betAmount, myPlayer.chipCount + (myPlayer.currentBet || 0));
+  const isAllInBet = effectiveBetAmount >= myPlayer.chipCount;
+
   const leftLabel = 'Fold';
   const middleLabel = validActions.call ? `Call $${callAmount}` : 'Check';
-  const rightLabel = validActions.raise
-    ? `Raise $${betAmount}`
-    : validActions.bet
-    ? `Bet $${betAmount}`
-    : `All-In $${myPlayer.chipCount}`;
+  
+  let rightLabel: string;
+  let handleRight: () => void;
+  
+  if (validActions.raise) {
+    if (isAllInBet || !canAffordMinRaise) {
+      rightLabel = `All-In $${myPlayer.chipCount}`;
+      handleRight = handleAllIn;
+    } else {
+      rightLabel = `Raise $${effectiveBetAmount}`;
+      handleRight = handleRaise;
+    }
+  } else if (validActions.bet) {
+    if (isAllInBet) {
+      rightLabel = `All-In $${myPlayer.chipCount}`;
+      handleRight = handleAllIn;
+    } else {
+      rightLabel = `Bet $${effectiveBetAmount}`;
+      handleRight = handleBet;
+    }
+  } else {
+    rightLabel = `All-In $${myPlayer.chipCount}`;
+    handleRight = handleAllIn;
+  }
 
   const handleLeft = handleFold;
   const handleMiddle = validActions.call ? handleCall : handleCheck;
-  const handleRight = validActions.raise
-    ? handleRaise
-    : validActions.bet
-    ? handleBet
-    : handleAllIn;
 
   return (
     <div className="shrink-0 bg-gray-900 px-2 pt-1.5 pb-[env(safe-area-inset-bottom,4px)] border-t border-gray-700">
