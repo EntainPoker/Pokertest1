@@ -138,16 +138,26 @@ export function useGameState() {
       // Preserve existing hole cards (game:state sends sanitized state without cards)
       const existingHoleCards = useGameStore.getState().myHoleCards;
 
+      // Clear hole cards when a new hand starts (handNumber changed or bettingRound is preflop with fresh state)
+      const prevHandState = useGameStore.getState().handState;
+      const handChanged = prevHandState && prevHandState.handNumber !== handState.handNumber;
+      const myHoleCards = handChanged ? [] : existingHoleCards;
+
       // Determine if it's our turn
       const currentTurnPlayer = handState.players[handState.currentPlayerIndex];
       const isMyTurn = currentTurnPlayer?.playerId === currentPlayerId;
 
+      // Don't override turnTimeRemaining here — let game:turn event control it
+      // Only set it if it's now our turn and we haven't received a game:turn event yet
+      const currentTimeRemaining = useGameStore.getState().turnTimeRemaining;
+      const shouldResetTimer = isMyTurn && (!prevHandState || prevHandState.currentPlayerIndex !== handState.currentPlayerIndex);
+
       useGameStore.setState({
         handState,
         tournament,
-        myHoleCards: existingHoleCards,
+        myHoleCards,
         isMyTurn,
-        turnTimeRemaining: handState.turnTimeoutSeconds,
+        turnTimeRemaining: shouldResetTimer ? handState.turnTimeoutSeconds : currentTimeRemaining,
         tableTheme: tableTheme || useGameStore.getState().tableTheme || 'classic-green',
       });
     };
