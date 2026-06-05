@@ -304,7 +304,8 @@ export interface GameCreationRequest {
   blindIntervalMinutes?: number;
   maxBlindLevel?: number;
   startingChips?: number;
-  tableTheme?: 'classic-green' | 'dark-blue' | 'red-velvet' | 'midnight-purple';
+  tableTheme?: 'classic-green' | 'dark-blue' | 'red-velvet' | 'midnight-purple' | 'pink-felt';
+  turnTimeSeconds?: number;
 }
 
 export interface GameCreationResponse {
