@@ -75,6 +75,8 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
             ? 'ring-2 ring-poker-gold animate-pulse'
             : isFolded
             ? 'ring-1 ring-red-500/50'
+            : isWinner
+            ? 'ring-2 ring-yellow-400 animate-winner-glow'
             : 'ring-2 ring-gray-600/50'
         } ${isAllIn ? 'ring-2 ring-red-500' : ''}`}
       >
