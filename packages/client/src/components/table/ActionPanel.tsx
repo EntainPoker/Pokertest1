@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import type { HandState, PlayerAction } from '@spin-and-go/shared';
-import { Timer } from '../shared/Timer';
+import { useTurnTimer } from '../../hooks/useTurnTimer';
 
 interface ActionPanelProps {
   /** Current hand state */
@@ -16,10 +16,8 @@ interface ActionPanelProps {
 }
 
 /**
- * Ultra-compact mobile action panel — slider + 3 buttons.
- * No presets, no +/- buttons. ~120px max height when visible.
+ * Action panel with countdown timer, quick bet buttons, and slider.
  * Returns null when it's not the current player's turn.
- * Satisfies Requirements 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 7.10, 13.2.
  */
 export function ActionPanel({
   handState,
@@ -35,6 +33,13 @@ export function ActionPanel({
 
   // Find the player's data
   const myPlayer = players.find((p) => p.playerId === currentPlayerId);
+
+  // Use the turn timer hook for proper countdown
+  const { secondsLeft } = useTurnTimer({
+    timeRemaining: turnTimeRemaining,
+    onExpire: onTurnExpire || (() => {}),
+    isActive: isMyTurn,
+  });
 
   // Determine valid actions
   const validActions = useMemo(() => {
@@ -56,28 +61,37 @@ export function ActionPanel({
     };
   }, [myPlayer, isMyTurn, currentBet, minRaise, handState.players.length]);
 
-  // Bet/Raise amount state
+  // Bet/Raise minimum: always the big blind for a new betting round
+  // For raises: currentBet + minRaise increment (which equals last raise size)
   const betMin = useMemo(() => {
     if (!myPlayer) return 0;
     if (validActions.bet) {
-      // Preflop BB option: minimum raise is currentBet + minRaise increment
+      // Preflop BB option: can raise from current bet
       if (handState.bettingRound === 'preflop' && (myPlayer.currentBet || 0) >= currentBet && currentBet > 0) {
         return currentBet + (minRaise || currentBet);
       }
+      // Standard bet: minimum is the big blind (minRaise at start of a new round)
       const bigBlind = handState.minRaise || 20;
       return bigBlind;
     }
     if (validActions.raise) {
+      // Min raise = current bet + last raise increment (stored in minRaise)
       return currentBet + minRaise;
     }
     return 0;
   }, [myPlayer, validActions, currentBet, minRaise, handState.minRaise, handState.bettingRound]);
 
-  const betMax = myPlayer?.chipCount ?? 0;
+  const betMax = myPlayer ? myPlayer.chipCount + (myPlayer.currentBet || 0) : 0;
 
   const [betAmount, setBetAmount] = useState(betMin);
 
-  // Keep betAmount in valid range when min changes
+  // CRITICAL FIX: Reset betAmount to the minimum when betMin changes
+  // This ensures after a street change, the default goes back to min bet (big blind)
+  useEffect(() => {
+    setBetAmount(betMin);
+  }, [betMin]);
+
+  // Also clamp if out of bounds
   useEffect(() => {
     if (betAmount < betMin) setBetAmount(betMin);
     if (betAmount > betMax) setBetAmount(betMax);
@@ -112,34 +126,24 @@ export function ActionPanel({
     onAction({ type: 'all_in' });
   }, [onAction]);
 
-  const adjustBet = useCallback(
-    (delta: number) => {
-      setBetAmount((prev) => {
-        const next = prev + delta;
-        return Math.max(betMin, Math.min(betMax, next));
-      });
-    },
-    [betMin, betMax]
-  );
+  // Quick bet presets
+  const presets = useMemo(() => {
+    if (!myPlayer) return [];
+    const base = validActions.raise ? currentBet : 0;
+    const increment = minRaise || 20;
+    return [
+      { label: '1.5x', amount: Math.min(Math.round(base + increment * 1.5), betMax) },
+      { label: '2x', amount: Math.min(base + increment * 2, betMax) },
+      { label: '3x', amount: Math.min(base + increment * 3, betMax) },
+    ];
+  }, [betMin, betMax, currentBet, minRaise, validActions.raise, myPlayer]);
 
   const showAmountInput = validActions.bet || validActions.raise;
 
-  // Preset raise amounts (kept for hook ordering — not rendered)
-  const presets = useMemo(() => {
-    const base = validActions.raise ? currentBet : 0;
-    const min = minRaise || 20;
-    return [
-      { label: 'Min', amount: betMin },
-      { label: '2x', amount: Math.min(base + min * 2, betMax) },
-      { label: '3x', amount: Math.min(base + min * 3, betMax) },
-      { label: 'Pot', amount: Math.min(handState.pot + currentBet * 2, betMax) },
-      { label: 'All-In', amount: betMax },
-    ];
-  }, [betMin, betMax, currentBet, minRaise, handState.pot, validActions.raise]);
-
   // Timer progress (percentage remaining)
-  const timerMax = 15;
-  const timerProgress = Math.max(0, Math.min(100, (turnTimeRemaining / timerMax) * 100));
+  const timerMax = handState.turnTimeoutSeconds || 15;
+  const timerProgress = Math.max(0, Math.min(100, (secondsLeft / timerMax) * 100));
+  const isTimerUrgent = secondsLeft <= 5 && secondsLeft > 0;
 
   // Don't render if it's not the player's turn
   if (!isMyTurn || !myPlayer || myPlayer.status !== 'active') {
@@ -147,10 +151,9 @@ export function ActionPanel({
   }
 
   // Determine which buttons to show — always 3 columns
-  // If player's chips can't cover minimum raise, show All-In instead of Raise
   const canAffordMinRaise = myPlayer.chipCount >= (betMin - (myPlayer.currentBet || 0));
   const effectiveBetAmount = Math.min(betAmount, myPlayer.chipCount + (myPlayer.currentBet || 0));
-  const isAllInBet = effectiveBetAmount >= myPlayer.chipCount;
+  const isAllInBet = effectiveBetAmount >= myPlayer.chipCount + (myPlayer.currentBet || 0);
 
   const leftLabel = 'Fold';
   const middleLabel = validActions.call ? `Call $${callAmount}` : 'Check';
@@ -171,7 +174,6 @@ export function ActionPanel({
       rightLabel = `All-In $${myPlayer.chipCount}`;
       handleRight = handleAllIn;
     } else if (handState.bettingRound === 'preflop' && (myPlayer.currentBet || 0) >= currentBet && currentBet > 0) {
-      // Preflop BB special case: label as "Raise" and send raise action since the blind counts as a bet
       rightLabel = `Raise $${effectiveBetAmount}`;
       handleRight = handleRaise;
     } else {
@@ -190,31 +192,55 @@ export function ActionPanel({
     <div className="shrink-0 bg-gray-900 px-2 pt-1.5 pb-[env(safe-area-inset-bottom,4px)] border-t border-gray-700">
       {/* Turn timer — prominent countdown */}
       <div className="flex items-center gap-2 mb-1.5">
-        <span className="text-lg font-bold text-poker-gold">{turnTimeRemaining}s</span>
+        <span className={`text-lg font-bold tabular-nums ${isTimerUrgent ? 'text-red-500 animate-pulse' : 'text-poker-gold'}`}>
+          {secondsLeft}s
+        </span>
         <div className="flex-1 h-2.5 bg-gray-700 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-poker-gold to-amber-400 rounded-full transition-all duration-1000"
+            className={`h-full rounded-full transition-all duration-1000 ${isTimerUrgent ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-gradient-to-r from-poker-gold to-amber-400'}`}
             style={{ width: `${timerProgress}%` }}
           />
         </div>
       </div>
 
-      {/* Slider row — only show if bet/raise available */}
+      {/* Quick bet buttons + Slider row — only show if bet/raise available */}
       {showAmountInput && (
-        <div className="flex items-center gap-2 mb-1.5">
-          <span className="text-[10px] text-gray-400 shrink-0">${betMin}</span>
-          <input
-            type="range"
-            min={betMin}
-            max={betMax}
-            value={betAmount}
-            onChange={(e) => setBetAmount(parseInt(e.target.value, 10))}
-            className="flex-1 h-2 accent-poker-gold bg-gray-700 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-poker-gold [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:appearance-none"
-            aria-label="Bet amount slider"
-          />
-          <span className="text-xs sm:text-sm text-poker-gold font-bold shrink-0">${betAmount}</span>
+        <div className="flex items-center gap-1.5 mb-1.5">
+          {/* Quick bet buttons on the left */}
+          <div className="flex flex-col gap-0.5 shrink-0">
+            {presets.map((preset) => (
+              <button
+                key={preset.label}
+                type="button"
+                onClick={() => setBetAmount(preset.amount)}
+                className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-all ${
+                  betAmount === preset.amount
+                    ? 'bg-poker-gold text-gray-900 border-poker-gold'
+                    : 'bg-gray-800 text-gray-300 border-gray-600 hover:border-poker-gold/50'
+                }`}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Slider on the right (takes remaining space) */}
+          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+            <span className="text-[10px] text-gray-400 shrink-0">${betMin}</span>
+            <input
+              type="range"
+              min={betMin}
+              max={betMax}
+              value={betAmount}
+              onChange={(e) => setBetAmount(parseInt(e.target.value, 10))}
+              className="flex-1 h-2 accent-poker-gold bg-gray-700 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-poker-gold [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:appearance-none"
+              aria-label="Bet amount slider"
+            />
+            <span className="text-xs sm:text-sm text-poker-gold font-bold shrink-0">${betAmount}</span>
+          </div>
         </div>
       )}
+
       {/* Button row: 3 buttons, equal width */}
       <div className="grid grid-cols-3 gap-1.5">
         <button
