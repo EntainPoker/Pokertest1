@@ -102,6 +102,18 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
         <span className="text-[9px] sm:text-[10px] text-amber-300 font-bold bg-red-900/60 px-1.5 py-0.5 rounded">ALL-IN</span>
       )}
 
+      {/* Position label (BTN, SB, BB, UTG, etc.) — Rule 83 */}
+      {positionLabel && !isAllIn && (
+        <span className={`text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded ${
+          positionLabel === 'BTN' ? 'bg-white text-gray-900' :
+          positionLabel === 'SB' ? 'bg-blue-600/80 text-white' :
+          positionLabel === 'BB' ? 'bg-orange-600/80 text-white' :
+          'bg-gray-700/80 text-gray-300'
+        }`}>
+          {positionLabel}
+        </span>
+      )}
+
       {/* Bet chip indicator — gold pill with amount */}
       {typeof player.currentBet === 'number' && player.currentBet > 0 && (
         <span className="flex items-center gap-0.5 bg-gradient-to-r from-yellow-500 to-amber-600 text-gray-900 text-[9px] sm:text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
