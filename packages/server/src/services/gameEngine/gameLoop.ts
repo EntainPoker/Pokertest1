@@ -962,16 +962,23 @@ function persistState(gameInstanceId: string, gameState: GameState): void {
 /**
  * Emits the game state to all players in the game room.
  * Hole cards are stripped — each player gets their own cards via game:deal.
+ * At showdown, non-folded players' hole cards are revealed to all.
  */
 function emitGameState(gameInstanceId: string, gameState: GameState): void {
+  const instance = gameLoops.get(gameInstanceId);
+  const isShowdown = gameState.handState.bettingRound === 'showdown';
+
   // Create a sanitized version without hole cards and with safe serializable values
   const sanitizedState: GameState = {
     ...gameState,
+    tableTheme: gameState.tableTheme, // Explicitly preserve table theme
     handState: {
       ...gameState.handState,
       players: gameState.handState.players.map(p => ({
         ...p,
-        holeCards: [], // Never broadcast hole cards in state
+        holeCards: isShowdown && p.status !== 'folded' && instance
+          ? (instance.playerHoleCards.get(p.playerId) || [])
+          : [], // Hide during normal play, reveal at showdown for non-folded players
       })),
       lastAction: null, // Don't send action objects to prevent React render crashes
       lastActionText: gameState.handState.lastActionText ?? null,
