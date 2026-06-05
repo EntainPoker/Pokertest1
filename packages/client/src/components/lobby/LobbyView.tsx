@@ -13,11 +13,13 @@ export function LobbyView() {
   const currentPlayerId = useAuthStore((s) => s.player?.id ?? '');
   const {
     games,
+    activeGames,
     loading,
     error,
     registering,
     registrationMessage,
     fetchGames,
+    fetchActiveGames,
     registerForGame,
     unregisterFromGame,
     applyLobbyUpdate,
@@ -27,10 +29,11 @@ export function LobbyView() {
   const socket = useSocket();
   const [activeTab, setActiveTab] = useState<FilterTab>('spin-and-go');
 
-  // Fetch games on mount
+  // Fetch games and active games on mount
   useEffect(() => {
     fetchGames();
-  }, [fetchGames]);
+    fetchActiveGames();
+  }, [fetchGames, fetchActiveGames]);
 
   // Subscribe to real-time lobby updates via WebSocket
   useEffect(() => {
@@ -93,6 +96,33 @@ export function LobbyView() {
 
   return (
     <div className="px-4 py-4 sm:px-6 lg:px-8">
+      {/* Active Tables Bar — show if player has active games */}
+      {activeGames.length > 0 && (
+        <div className="max-w-7xl mx-auto mb-4">
+          <div className="bg-gray-800/80 border border-poker-gold/30 rounded-xl p-3 backdrop-blur-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              <span className="text-xs font-semibold text-gray-300 uppercase tracking-wide">
+                Your Active Tables ({activeGames.length})
+              </span>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {activeGames.map((game) => (
+                <button
+                  key={game.gameId}
+                  type="button"
+                  onClick={() => navigate(`/table/${game.gameId}`)}
+                  className="shrink-0 min-h-[40px] px-4 py-2 rounded-lg bg-gradient-to-r from-green-700 to-green-800 border border-green-600/50 text-white text-xs sm:text-sm font-medium hover:from-green-600 hover:to-green-700 transition-all shadow-md"
+                >
+                  <span className="block">{game.name}</span>
+                  <span className="block text-[10px] text-green-300">{game.playerCount} players • In Progress</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Filter tabs */}
       <div className="max-w-7xl mx-auto mb-4">
         <div className="flex gap-1 border-b border-gray-800">
