@@ -520,7 +520,7 @@ function advanceToNextRound(gameInstanceId: string): void {
 
 /**
  * When all players are all-in or only one is active, deal remaining community cards
- * and go straight to showdown.
+ * sequentially with delays and go to showdown.
  */
 function runOutBoard(gameInstanceId: string): void {
   const instance = gameLoops.get(gameInstanceId);
@@ -531,28 +531,67 @@ function runOutBoard(gameInstanceId: string): void {
 
   const { handState } = gameState;
 
-  // Deal remaining community cards
-  while (handState.communityCards.length < 5) {
-    if (handState.communityCards.length === 0) {
-      const flopCards = instance.deck.dealFlop();
-      handState.communityCards.push(...flopCards);
-    } else if (handState.communityCards.length === 3) {
-      handState.communityCards.push(instance.deck.dealTurn());
-    } else if (handState.communityCards.length === 4) {
-      handState.communityCards.push(instance.deck.dealRiver());
-    }
+  function emitCommunityCards() {
+    io.to(`game:${gameInstanceId}`).emit('game:deal', {
+      holeCards: [],
+      communityCards: handState.communityCards,
+    });
+    emitGameState(gameInstanceId, gameState);
   }
 
-  // Emit community cards
-  io.to(`game:${gameInstanceId}`).emit('game:deal', {
-    holeCards: [],
-    communityCards: handState.communityCards,
-  });
+  // Deal flop if needed
+  if (handState.communityCards.length === 0) {
+    const flopCards = instance.deck.dealFlop();
+    handState.communityCards.push(...flopCards);
+    emitCommunityCards();
 
-  // Small delay before showdown
-  setTimeout(() => {
+    // After 1 second, deal turn
+    setTimeout(() => {
+      const gs = activeGameStates.get(gameInstanceId);
+      if (!gs) return;
+      gs.handState.communityCards.push(instance.deck.dealTurn());
+      emitCommunityCards();
+
+      // After 1 second, deal river
+      setTimeout(() => {
+        const gs2 = activeGameStates.get(gameInstanceId);
+        if (!gs2) return;
+        gs2.handState.communityCards.push(instance.deck.dealRiver());
+        emitCommunityCards();
+
+        // After 1 second, go to showdown
+        setTimeout(() => {
+          handleShowdown(gameInstanceId);
+        }, 1000);
+      }, 1000);
+    }, 1000);
+  } else if (handState.communityCards.length === 3) {
+    // Deal turn
+    handState.communityCards.push(instance.deck.dealTurn());
+    emitCommunityCards();
+
+    setTimeout(() => {
+      const gs = activeGameStates.get(gameInstanceId);
+      if (!gs) return;
+      gs.handState.communityCards.push(instance.deck.dealRiver());
+      emitCommunityCards();
+
+      setTimeout(() => {
+        handleShowdown(gameInstanceId);
+      }, 1000);
+    }, 1000);
+  } else if (handState.communityCards.length === 4) {
+    // Deal river
+    handState.communityCards.push(instance.deck.dealRiver());
+    emitCommunityCards();
+
+    setTimeout(() => {
+      handleShowdown(gameInstanceId);
+    }, 1000);
+  } else {
+    // All cards already dealt
     handleShowdown(gameInstanceId);
-  }, 1000);
+  }
 }
 
 // ============================================================
