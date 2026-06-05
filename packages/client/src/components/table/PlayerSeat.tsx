@@ -1,6 +1,5 @@
 import type { HandPlayer, Card as CardType } from '@spin-and-go/shared';
 import { Card } from '../shared/Card';
-import { ChipStack } from '../shared/ChipStack';
 
 interface PlayerSeatProps {
   player: HandPlayer;
@@ -12,9 +11,9 @@ interface PlayerSeatProps {
 }
 
 /**
- * Player seat component — compact for opponents (top zone), expanded for current player (middle zone).
- * Shows circular avatar, username, chip count, active/folded state, and hole cards when visible.
- * Status indicators: green ring for active, red for folded, gold pulsing for current turn.
+ * Player seat component — ultra-compact for mobile opponents.
+ * Shows small avatar, username, chip count, and face-down card placeholders.
+ * Folded players are dimmed via opacity.
  * Satisfies Requirements 6.1, 6.2, 6.5, 6.8.
  */
 export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = [] }: PlayerSeatProps) {
@@ -36,63 +35,53 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
 
   return (
     <div
-      className={`relative flex flex-col items-center gap-0.5 p-1 sm:p-2 rounded-xl transition-all ${
+      className={`relative flex flex-col items-center gap-0.5 p-1 rounded-lg transition-opacity ${
         isFolded ? 'opacity-40' : ''
       }`}
       aria-label={`${player.username}${isActive ? ' (active)' : ''}${isFolded ? ' (folded)' : ''}${isAllIn ? ' (all-in)' : ''}`}
     >
       {/* Dealer button indicator */}
       {isDealer && (
-        <span className="absolute -top-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-white text-gray-900 text-[7px] sm:text-[9px] font-black flex items-center justify-center shadow-md border border-gray-300 z-10">
+        <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-white text-gray-900 text-[6px] font-black flex items-center justify-center shadow-sm border border-gray-300 z-10">
           D
         </span>
       )}
 
       {/* Avatar circle with status ring */}
       <div
-        className={`relative w-7 h-7 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-base shadow-md bg-gradient-to-br ${avatarGradient} ${
+        className={`relative w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-[10px] shadow-md bg-gradient-to-br ${avatarGradient} ${
           isActive
-            ? 'ring-2 ring-poker-gold shadow-poker-gold/50 shadow-lg animate-pulse'
+            ? 'ring-2 ring-poker-gold animate-pulse'
             : isFolded
             ? 'ring-1 ring-red-500/50'
             : 'ring-1 ring-gray-600/50'
         } ${isAllIn ? 'ring-2 ring-red-500' : ''}`}
       >
-        {isFolded ? (
-          <span className="text-gray-300 line-through">{firstLetter}</span>
-        ) : (
-          firstLetter
-        )}
+        {firstLetter}
       </div>
 
       {/* Username */}
-      <span className="text-[8px] sm:text-xs font-semibold text-gray-100 truncate max-w-[60px] sm:max-w-[100px]">
+      <span className="text-[8px] font-medium text-gray-200 truncate max-w-[50px]">
         {player.username}
       </span>
 
-      {/* Chip count pill */}
-      <ChipStack amount={player.chipCount} />
+      {/* Chip count */}
+      <span className="text-[8px] text-poker-gold font-bold">
+        ${player.chipCount}
+      </span>
 
-      {/* Status badges */}
-      {isFolded && (
-        <span className="text-[10px] sm:text-xs text-red-400 font-semibold bg-red-400/10 rounded-full px-2 py-0.5 border border-red-400/20">Folded</span>
-      )}
+      {/* All-In badge */}
       {isAllIn && (
-        <span className="text-[10px] sm:text-xs text-amber-300 font-semibold bg-amber-400/10 rounded-full px-2 py-0.5 border border-amber-400/30 animate-pulse">All-In</span>
+        <span className="text-[7px] text-amber-300 font-bold">ALL-IN</span>
       )}
 
-      {/* Current bet shown toward center */}
+      {/* Current bet */}
       {typeof player.currentBet === 'number' && player.currentBet > 0 && (
-        <div className="absolute -bottom-4 left-1/2 -translate-x-1/2">
-          <span className="inline-flex items-center gap-0.5 text-[9px] sm:text-[10px] text-poker-gold font-bold bg-gray-900/90 rounded-full px-2 py-0.5 border border-poker-gold/30 shadow-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-gradient-to-br from-poker-gold to-amber-600" aria-hidden="true" />
-            ${Number(player.currentBet)}
-          </span>
-        </div>
+        <span className="text-[8px] text-poker-gold/80">${Number(player.currentBet)}</span>
       )}
 
-      {/* Hole cards */}
-      <div className="flex gap-0.5 mt-1">
+      {/* Hole cards — tiny face-down placeholders or face-up */}
+      <div className="flex gap-0.5 [&>div]:w-5 [&>div]:h-7">
         {showCards && holeCards.length > 0
           ? holeCards.map((card, i) => (
               <Card key={i} rank={card.rank} suit={card.suit} />
