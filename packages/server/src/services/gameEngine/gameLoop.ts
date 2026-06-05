@@ -366,7 +366,7 @@ function startNewHand(gameInstanceId: string): void {
     minRaise: blindLevel.bigBlind,
     lastAction: null,
     turnStartedAt: new Date(),
-    turnTimeoutSeconds: 30,
+    turnTimeoutSeconds: 15,
   };
 
   // Initialize betting round tracker
