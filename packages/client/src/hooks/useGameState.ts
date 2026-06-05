@@ -166,8 +166,9 @@ export function useGameState() {
       const isMyTurn = payload.playerId === currentPlayerId;
 
       // ALWAYS reset timer to full value (15s) on every new turn (Rule 64)
+      // Increment turnResetKey to force timer hook to restart even if value is same
       useGameStore.setState((state) => {
-        if (!state.handState) return { isMyTurn, turnTimeRemaining: payload.timeRemaining };
+        if (!state.handState) return { isMyTurn, turnTimeRemaining: payload.timeRemaining, turnResetKey: (state.turnResetKey || 0) + 1 };
         
         const playerIndex = state.handState.players.findIndex(
           p => p.playerId === payload.playerId
@@ -176,6 +177,7 @@ export function useGameState() {
         return {
           isMyTurn,
           turnTimeRemaining: payload.timeRemaining,
+          turnResetKey: (state.turnResetKey || 0) + 1,
           handState: {
             ...state.handState,
             currentPlayerIndex: playerIndex >= 0 ? playerIndex : state.handState.currentPlayerIndex,
