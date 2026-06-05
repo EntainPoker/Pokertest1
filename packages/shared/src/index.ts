@@ -301,6 +301,10 @@ export interface RegistrationResult {
 export interface GameCreationRequest {
   name: string;
   maxPlayers: number;
+  blindIntervalMinutes?: number;
+  maxBlindLevel?: number;
+  startingChips?: number;
+  tableTheme?: 'classic-green' | 'dark-blue' | 'red-velvet' | 'midnight-purple';
 }
 
 export interface GameCreationResponse {
