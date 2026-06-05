@@ -75,6 +75,11 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
         <span className="text-[7px] text-amber-300 font-bold">ALL-IN</span>
       )}
 
+      {/* Folded text — minimal */}
+      {isFolded && (
+        <span className="text-[7px] text-red-400 font-medium">Folded</span>
+      )}
+
       {/* Current bet */}
       {typeof player.currentBet === 'number' && player.currentBet > 0 && (
         <span className="text-[8px] text-poker-gold/80">${Number(player.currentBet)}</span>
