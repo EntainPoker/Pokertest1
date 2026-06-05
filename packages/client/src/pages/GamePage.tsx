@@ -152,6 +152,12 @@ export function GamePage() {
     navigate('/lobby');
   }, [navigate]);
 
+  // Keep a ref to the last valid handState to prevent blank flashes during transitions
+  const lastHandStateRef = useRef(handState);
+  if (handState) {
+    lastHandStateRef.current = handState;
+  }
+
   // Show results overlay when game ends
   if (showResults && tournamentResult) {
     const myResult = tournamentResult.standings?.find(
