@@ -82,7 +82,7 @@ describe('ActionPanel', () => {
       />
     );
 
-    expect(screen.getByText(/Call 20/)).toBeInTheDocument();
+    expect(screen.getByText(/Call \$20/)).toBeInTheDocument();
     expect(screen.getByText('Fold')).toBeInTheDocument();
   });
 
