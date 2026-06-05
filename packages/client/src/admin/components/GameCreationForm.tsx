@@ -21,6 +21,7 @@ export function GameCreationForm() {
   const [maxBlindLevel, setMaxBlindLevel] = useState(8);
   const [startingChips, setStartingChips] = useState(500);
   const [tableTheme, setTableTheme] = useState<string>('classic-green');
+  const [turnTimeSeconds, setTurnTimeSeconds] = useState(15);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   // When switching tabs, update maxPlayers default
