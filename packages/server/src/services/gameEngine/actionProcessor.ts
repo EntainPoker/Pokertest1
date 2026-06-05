@@ -388,7 +388,7 @@ function processFold(player: HandPlayer): ActionResult {
  */
 function processAllIn(
   player: HandPlayer,
-  handState?: HandState,
+  _handState?: HandState,
   chipAmount?: number
 ): ActionResult {
   const allInAmount = chipAmount ?? player.chipCount;
