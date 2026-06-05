@@ -536,7 +536,7 @@ function runOutBoard(gameInstanceId: string): void {
       holeCards: [],
       communityCards: handState.communityCards,
     });
-    emitGameState(gameInstanceId, gameState);
+    emitGameState(gameInstanceId, gameState!);
   }
 
   // Deal flop if needed
