@@ -858,10 +858,10 @@ function completeHand(gameInstanceId: string): void {
 
   persistState(gameInstanceId, gameState);
 
-  // Start next hand after 3 seconds
+  // Start next hand after 4 seconds
   setTimeout(() => {
     startNewHand(gameInstanceId);
-  }, 3000);
+  }, 4000);
 }
 
 // ============================================================
