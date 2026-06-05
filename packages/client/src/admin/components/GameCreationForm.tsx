@@ -8,6 +8,7 @@ const TABLE_THEMES = [
   { value: 'dark-blue', label: 'Dark Blue' },
   { value: 'red-velvet', label: 'Red Velvet' },
   { value: 'midnight-purple', label: 'Midnight Purple' },
+  { value: 'pink-felt', label: 'Pink' },
 ] as const;
 
 export function GameCreationForm() {
