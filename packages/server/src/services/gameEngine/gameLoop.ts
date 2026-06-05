@@ -694,6 +694,7 @@ function handleShowdown(gameInstanceId: string): void {
 /**
  * Award pot immediately when all other players have folded.
  * Does NOT show cards.
+ * Handles uncalled bet return (Rule 164-165).
  */
 function awardPotToLastPlayer(gameInstanceId: string, winner: HandPlayer): void {
   const instance = gameLoops.get(gameInstanceId);
@@ -704,9 +705,38 @@ function awardPotToLastPlayer(gameInstanceId: string, winner: HandPlayer): void 
 
   const { handState } = gameState;
 
+  // Calculate uncalled bet (Rule 164): if winner's bet exceeds all others, the excess returns
+  const winnerBet = winner.currentBet;
+  const otherMaxBet = Math.max(
+    ...handState.players.filter(p => p.playerId !== winner.playerId).map(p => p.currentBet),
+    0
+  );
+  const uncalledAmount = Math.max(0, winnerBet - otherMaxBet);
+
+  // Return uncalled bet to winner (Rule 164: uncalled chips never enter pot)
+  if (uncalledAmount > 0) {
+    winner.chipCount += uncalledAmount;
+    winner.currentBet -= uncalledAmount;
+    winner.totalBetThisHand -= uncalledAmount;
+    // Recalculate pot without the uncalled portion
+    let recalcPot = 0;
+    for (const p of handState.players) {
+      recalcPot += p.totalBetThisHand;
+    }
+    handState.pot = recalcPot;
+  }
+
   // Award entire pot to the winner
-  winner.chipCount += handState.pot;
+  const potWon = handState.pot;
+  winner.chipCount += potWon;
   handState.pot = 0;
+
+  // Store win info for client display
+  (handState as any).showdownResults = [{
+    winnerId: winner.playerId,
+    amount: potWon,
+    uncalledReturn: uncalledAmount,
+  }];
 
   // Mark hand as complete
   handState.bettingRound = 'showdown';
