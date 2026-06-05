@@ -195,12 +195,18 @@ export function handlePlayerAction(
       handState.currentBet = instance.bettingRound.getCurrentBet();
       handState.minRaise = instance.bettingRound.getMinRaise();
     }
+    // Track last aggressor (Rule 47) — used for showdown reveal order
+    (handState as any).lastAggressorId = playerId;
   }
   if (result.processedAction!.type === 'all_in') {
     // All-in may act as a raise
     if (instance.bettingRound) {
       handState.currentBet = instance.bettingRound.getCurrentBet();
       handState.minRaise = instance.bettingRound.getMinRaise();
+    }
+    // All-in that raises also becomes last aggressor
+    if (result.updatedPlayer!.currentBet > handState.currentBet) {
+      (handState as any).lastAggressorId = playerId;
     }
   }
 
