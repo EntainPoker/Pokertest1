@@ -799,7 +799,7 @@ function startTurnForPlayer(
   // Emit turn event
   io.to(`game:${gameInstanceId}`).emit('game:turn', {
     playerId,
-    timeRemaining: 30,
+    timeRemaining: 15,
   });
 }
 
