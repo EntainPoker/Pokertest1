@@ -105,6 +105,14 @@ io.on('connection', (socket) => {
   socket.on('game:join', (data: { gameId: string; playerId?: string }) => {
     const { gameId, playerId } = data;
 
+    // Leave all previously joined game rooms to prevent cross-game state pollution
+    for (const joinedGame of joinedGames) {
+      if (joinedGame !== gameId) {
+        socket.leave(`game:${joinedGame}`);
+      }
+    }
+    joinedGames.clear();
+
     // Join the game room
     socket.join(`game:${gameId}`);
     joinedGames.add(gameId);
