@@ -228,6 +228,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
                   holeCards={getHoleCards(idx)}
                   lastAction={playerActions[p.playerId] === '__WINNER__' ? undefined : playerActions[p.playerId]}
                   isWinner={playerActions[p.playerId] === '__WINNER__'}
+                  positionLabel={positionLabels.get(idx)}
                 />
               );
             })}
