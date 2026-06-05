@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface UseTurnTimerOptions {
   /** Time remaining in seconds (from server) */
@@ -17,10 +17,9 @@ interface UseTurnTimerResult {
 }
 
 /**
- * Hook for managing the 30-second turn timer.
+ * Hook for managing the turn timer countdown.
  * Counts down from the server-provided timeRemaining value.
- * Calls onExpire (auto-fold) when the timer reaches 0.
- * Satisfies Requirements 7.8, 7.9.
+ * Calls onExpire (auto-fold) when the timer reaches 0 and isActive is true.
  */
 export function useTurnTimer({
   timeRemaining,
@@ -31,25 +30,34 @@ export function useTurnTimer({
   const [isExpired, setIsExpired] = useState(false);
   const onExpireRef = useRef(onExpire);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isActiveRef = useRef(isActive);
 
-  // Keep onExpire ref up to date without triggering re-renders
+  // Keep refs up to date
   useEffect(() => {
     onExpireRef.current = onExpire;
   }, [onExpire]);
 
-  // Reset timer when timeRemaining changes (new turn)
   useEffect(() => {
-    setSecondsLeft(timeRemaining);
-    setIsExpired(false);
+    isActiveRef.current = isActive;
+  }, [isActive]);
+
+  // Reset timer when timeRemaining changes (new turn started)
+  useEffect(() => {
+    if (timeRemaining > 0) {
+      setSecondsLeft(timeRemaining);
+      setIsExpired(false);
+    }
   }, [timeRemaining]);
 
-  // Run the countdown
+  // Run the countdown whenever active and not expired
   useEffect(() => {
-    if (!isActive || isExpired) {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
+    // Clean up any existing interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
+    if (!isActive || isExpired || secondsLeft <= 0) {
       return;
     }
 
@@ -61,7 +69,10 @@ export function useTurnTimer({
             clearInterval(intervalRef.current);
             intervalRef.current = null;
           }
-          onExpireRef.current();
+          // Only fire onExpire if this player's turn
+          if (isActiveRef.current) {
+            onExpireRef.current();
+          }
           return 0;
         }
         return prev - 1;
@@ -74,7 +85,7 @@ export function useTurnTimer({
         intervalRef.current = null;
       }
     };
-  }, [isActive, isExpired]);
+  }, [isActive, isExpired, timeRemaining]); // Re-trigger on timeRemaining to catch resets
 
   return { secondsLeft, isExpired };
 }
