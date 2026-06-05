@@ -8,15 +8,20 @@ interface PlayerSeatProps {
   showCards: boolean;
   /** Hole cards to display (passed from parent for the current player) */
   holeCards?: CardType[];
+  /** Last action text to display (e.g. "Check", "Call", "Raise $40", "Fold") */
+  lastAction?: string;
+  /** Whether this player won the last pot */
+  isWinner?: boolean;
 }
 
 /**
  * Player seat component — ultra-compact for mobile opponents.
  * Shows small avatar, username, chip count, and face-down card placeholders.
- * Folded players are dimmed via opacity.
+ * Folded players are dimmed via opacity with FOLD overlay.
+ * Shows bet chips prominently and last action badge.
  * Satisfies Requirements 6.1, 6.2, 6.5, 6.8.
  */
-export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = [] }: PlayerSeatProps) {
+export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = [], lastAction, isWinner }: PlayerSeatProps) {
   const isFolded = player.status === 'folded';
   const isAllIn = player.status === 'all_in';
   const firstLetter = player.username.charAt(0).toUpperCase();
@@ -36,10 +41,24 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
   return (
     <div
       className={`relative flex flex-col items-center gap-0.5 p-1.5 rounded-lg transition-opacity ${
-        isFolded ? 'opacity-40' : ''
+        isFolded ? 'opacity-30 grayscale' : ''
       }`}
       aria-label={`${player.username}${isActive ? ' (active)' : ''}${isFolded ? ' (folded)' : ''}${isAllIn ? ' (all-in)' : ''}`}
     >
+      {/* Winner badge */}
+      {isWinner && (
+        <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-yellow-400 text-gray-900 text-[8px] sm:text-[9px] font-black px-2 py-0.5 rounded-full shadow-lg z-20 animate-bounce">
+          🏆 WINNER
+        </span>
+      )}
+
+      {/* Last action badge */}
+      {lastAction && !isWinner && (
+        <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-gray-800 border border-gray-600 text-white text-[8px] sm:text-[9px] font-bold px-2 py-0.5 rounded-full shadow-md z-20 whitespace-nowrap">
+          {lastAction}
+        </span>
+      )}
+
       {/* Dealer button indicator */}
       {isDealer && (
         <span className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-white text-gray-900 text-[7px] sm:text-[8px] font-black flex items-center justify-center shadow-md border border-gray-300 z-10">
@@ -58,6 +77,12 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
         } ${isAllIn ? 'ring-2 ring-red-500' : ''}`}
       >
         {firstLetter}
+        {/* Fold overlay on avatar */}
+        {isFolded && (
+          <span className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full text-[8px] font-black text-red-400">
+            FOLD
+          </span>
+        )}
       </div>
 
       {/* Name badge — dark background like PartyPoker */}
@@ -75,14 +100,15 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
         <span className="text-[9px] sm:text-[10px] text-amber-300 font-bold bg-red-900/60 px-1.5 py-0.5 rounded">ALL-IN</span>
       )}
 
-      {/* Folded text — minimal */}
-      {isFolded && (
-        <span className="text-[9px] sm:text-[10px] text-red-400 font-medium">Folded</span>
-      )}
-
-      {/* Current bet */}
+      {/* Bet chip indicator — gold pill with amount */}
       {typeof player.currentBet === 'number' && player.currentBet > 0 && (
-        <span className="text-[9px] sm:text-xs text-poker-gold/80">${Number(player.currentBet)}</span>
+        <span className="flex items-center gap-0.5 bg-gradient-to-r from-yellow-500 to-amber-600 text-gray-900 text-[9px] sm:text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
+          <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="5" fill="#fbbf24" stroke="#92400e" strokeWidth="1"/>
+            <circle cx="6" cy="6" r="3" fill="#f59e0b"/>
+          </svg>
+          ${Number(player.currentBet)}
+        </span>
       )}
 
       {/* Hole cards — face-down with overlapping tilt for opponents */}
