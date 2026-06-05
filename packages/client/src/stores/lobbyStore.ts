@@ -6,9 +6,19 @@ import { useAuthStore } from './authStore';
 /** Game instance without the createdBy field (as returned by the lobby API) */
 export type LobbyGame = Omit<GameInstance, 'createdBy'>;
 
+/** Active game the player is currently in */
+export interface ActiveGame {
+  gameId: string;
+  name: string;
+  playerCount: number;
+  status: string;
+}
+
 export interface LobbyState {
   /** List of available games */
   games: LobbyGame[];
+  /** List of games the player is actively playing */
+  activeGames: ActiveGame[];
   /** Whether games are being fetched */
   loading: boolean;
   /** Error message if fetch failed */
@@ -20,6 +30,8 @@ export interface LobbyState {
 
   /** Fetch available games from the API */
   fetchGames: () => Promise<void>;
+  /** Fetch the player's active (in-progress) games */
+  fetchActiveGames: () => Promise<void>;
   /** Register the current player for a game */
   registerForGame: (gameId: string) => Promise<RegistrationResult>;
   /** Unregister the current player from a game */
@@ -32,6 +44,7 @@ export interface LobbyState {
 
 export const useLobbyStore = create<LobbyState>((set, get) => ({
   games: [],
+  activeGames: [],
   loading: false,
   error: null,
   registering: false,
@@ -47,6 +60,16 @@ export const useLobbyStore = create<LobbyState>((set, get) => ({
         ? (err as { message: string }).message
         : 'Failed to load games';
       set({ error: message, loading: false });
+    }
+  },
+
+  fetchActiveGames: async () => {
+    try {
+      const data = await apiFetch<{ activeGames: ActiveGame[] }>('/api/lobby/active-games');
+      set({ activeGames: data.activeGames });
+    } catch {
+      // Silently fail — active games is a nice-to-have
+      set({ activeGames: [] });
     }
   },
 
