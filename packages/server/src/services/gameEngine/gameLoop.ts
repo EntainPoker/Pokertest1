@@ -285,7 +285,7 @@ function startNewHand(gameInstanceId: string): void {
     p => p.status === 'active'
   );
 
-  const handPlayers: HandPlayer[] = activeTournamentPlayers.map((tp, index) => ({
+  const handPlayers: HandPlayer[] = activeTournamentPlayers.map((tp) => ({
     playerId: tp.playerId,
     username: tp.username,
     holeCards: [], // Server doesn't store in hand state broadcast
