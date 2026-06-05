@@ -67,6 +67,23 @@ export function useGameState() {
       // Use payload cards if they exist, otherwise preserve existing
       const myHoleCards = payloadHoleCards.length > 0 ? payloadHoleCards : existingHoleCards;
 
+      // CRITICAL: Strip hole cards from all players in the stored handState
+      // Cards should ONLY flow through myHoleCards (for hero) or at showdown from server
+      // This prevents opponents from seeing each other's cards (Rule 16)
+      // Exception: at showdown, non-folded players keep their cards for display
+      if (handState.bettingRound !== 'showdown') {
+        for (const p of handState.players) {
+          p.holeCards = [];
+        }
+      } else {
+        // At showdown: keep non-folded players' cards, strip folded players' cards
+        for (const p of handState.players) {
+          if (p.status === 'folded') {
+            p.holeCards = [];
+          }
+        }
+      }
+
       // Determine if it's our turn
       const currentTurnPlayer = handState.players[handState.currentPlayerIndex];
       const isMyTurn = currentTurnPlayer?.playerId === currentPlayerId;
