@@ -73,6 +73,7 @@ export function GameCreationForm() {
         maxBlindLevel,
         startingChips,
         tableTheme: tableTheme as any,
+        turnTimeSeconds,
       });
       setName('');
       setValidationError(null);
