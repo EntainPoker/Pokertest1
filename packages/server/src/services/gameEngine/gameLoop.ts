@@ -296,6 +296,11 @@ function startNewHand(gameInstanceId: string): void {
     hasActed: false,
   }));
 
+  // Store starting chip counts for hand history
+  for (const hp of handPlayers) {
+    instance.startingChipCounts.set(hp.playerId, hp.chipCount);
+  }
+
   // Determine position indices within the active player array
   const dealerPlayerIndex = positions.dealer;
   const sbPlayerIndex = positions.smallBlind;
