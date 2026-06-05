@@ -12,6 +12,8 @@ interface PlayerSeatProps {
   lastAction?: string;
   /** Whether this player won the last pot */
   isWinner?: boolean;
+  /** Position label (BTN, SB, BB, UTG, etc.) */
+  positionLabel?: string;
 }
 
 /**
