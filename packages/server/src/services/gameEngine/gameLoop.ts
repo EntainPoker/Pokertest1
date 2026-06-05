@@ -889,8 +889,20 @@ function startTurnForPlayer(
 }
 
 function handleTimeout(gameInstanceId: string, playerId: string): void {
-  // Auto-fold the player who timed out
-  handlePlayerAction(gameInstanceId, playerId, { type: 'fold' });
+  const gameState = activeGameStates.get(gameInstanceId);
+  if (gameState) {
+    const { handState } = gameState;
+    const player = handState.players[handState.currentPlayerIndex];
+    if (player && player.playerId === playerId) {
+      // Check if check is available (player's bet already matches the current bet)
+      const canCheck = handState.currentBet <= (player.currentBet || 0);
+      if (canCheck) {
+        handlePlayerAction(gameInstanceId, playerId, { type: 'check' });
+      } else {
+        handlePlayerAction(gameInstanceId, playerId, { type: 'fold' });
+      }
+    }
+  }
 }
 
 // ============================================================

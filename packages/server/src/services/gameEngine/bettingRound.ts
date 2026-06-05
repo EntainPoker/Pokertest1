@@ -108,7 +108,7 @@ export class BettingRound {
 
       case 'raise':
         const raiseIncrement = action.amount - this.currentBet;
-        if (raiseIncrement > this.minRaise) {
+        if (raiseIncrement >= this.minRaise) {
           this.minRaise = raiseIncrement;
         }
         player.currentBet = action.amount;

@@ -97,16 +97,18 @@ export function getAvailableActions(
   // Check: no outstanding bet
   const canCheck = !hasOutstandingBet;
 
-  // Bet: no outstanding bet exists (currentBet is 0 for this round)
+  // Bet: no outstanding bet exists AND currentBet is 0 (fresh round, no blinds counted)
   const canBet = currentBet === 0;
 
   // Call: there's an outstanding bet and player can afford it
   const canCall = hasOutstandingBet && playerChips >= callAmount;
 
   // Raise: there's an outstanding bet and player has enough chips to raise above the call
+  // Also allow raise when player has matched the current bet but it's > 0 (e.g., BB option preflop)
   const minRaiseTotal = currentBet + minRaiseIncrement;
   const chipsNeededToMinRaise = minRaiseTotal - playerBet;
-  const canRaise = hasOutstandingBet && playerChips > callAmount && playerChips >= chipsNeededToMinRaise;
+  const canRaise = (hasOutstandingBet && playerChips > callAmount && playerChips >= chipsNeededToMinRaise)
+    || (!hasOutstandingBet && currentBet > 0 && playerChips > 0); // BB option: can raise even though bet matches
 
   // Fold: always available when it's your turn
   const canFold = true;

@@ -60,6 +60,10 @@ export function ActionPanel({
   const betMin = useMemo(() => {
     if (!myPlayer) return 0;
     if (validActions.bet) {
+      // Preflop BB option: minimum raise is currentBet + minRaise increment
+      if (handState.bettingRound === 'preflop' && (myPlayer.currentBet || 0) >= currentBet && currentBet > 0) {
+        return currentBet + (minRaise || currentBet);
+      }
       const bigBlind = handState.minRaise || 20;
       return bigBlind;
     }
@@ -67,7 +71,7 @@ export function ActionPanel({
       return currentBet + minRaise;
     }
     return 0;
-  }, [myPlayer, validActions, currentBet, minRaise, handState.minRaise]);
+  }, [myPlayer, validActions, currentBet, minRaise, handState.minRaise, handState.bettingRound]);
 
   const betMax = myPlayer?.chipCount ?? 0;
 
@@ -134,7 +138,7 @@ export function ActionPanel({
   }, [betMin, betMax, currentBet, minRaise, handState.pot, validActions.raise]);
 
   // Timer progress (percentage remaining)
-  const timerMax = 30;
+  const timerMax = 15;
   const timerProgress = Math.max(0, Math.min(100, (turnTimeRemaining / timerMax) * 100));
 
   // Don't render if it's not the player's turn
@@ -167,9 +171,9 @@ export function ActionPanel({
       rightLabel = `All-In $${myPlayer.chipCount}`;
       handleRight = handleAllIn;
     } else if (handState.bettingRound === 'preflop' && (myPlayer.currentBet || 0) >= currentBet && currentBet > 0) {
-      // Preflop BB special case: label as "Raise" not "Bet" since the blind counts as a bet
+      // Preflop BB special case: label as "Raise" and send raise action since the blind counts as a bet
       rightLabel = `Raise $${effectiveBetAmount}`;
-      handleRight = handleBet; // Server accepts it as a bet action
+      handleRight = handleRaise;
     } else {
       rightLabel = `Bet $${effectiveBetAmount}`;
       handleRight = handleBet;
