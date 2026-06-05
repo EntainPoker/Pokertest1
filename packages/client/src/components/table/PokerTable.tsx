@@ -8,6 +8,7 @@ import { Card } from '../shared/Card';
 import { LastHandSummary } from '../history/LastHandSummary';
 import { getSocket } from '../../services/socket';
 import { useGameStore } from '../../stores/gameStore';
+import { getPositionLabels } from '../../services/positionLabels';
 
 interface PokerTableProps {
   handState: HandState;
