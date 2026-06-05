@@ -20,6 +20,7 @@ export function createGameInstance(
   createdBy: string,
   blindIntervalMinutes: number = 3,
   startingChips: number = 500,
+  tableTheme: string = 'classic-green',
 ): GameInstance {
   const validation = validateGameCreationParams(name, maxPlayers);
   if (!validation.valid) throw new Error(validation.errors.join('; '));
@@ -27,9 +28,9 @@ export function createGameInstance(
   const id = crypto.randomUUID().replace(/-/g, '');
 
   query(
-    `INSERT INTO game_instances (id, name, format, max_players, buy_in, starting_chips, blind_interval_minutes, status, created_at, end_date, created_by)
-     VALUES (?, ?, 'texas_holdem', ?, 1, ?, ?, 'open', datetime('now'), datetime('now', '+30 days'), ?)`,
-    [id, name.trim(), maxPlayers, startingChips, blindIntervalMinutes, createdBy]
+    `INSERT INTO game_instances (id, name, format, max_players, buy_in, starting_chips, blind_interval_minutes, table_theme, status, created_at, end_date, created_by)
+     VALUES (?, ?, 'texas_holdem', ?, 1, ?, ?, ?, 'open', datetime('now'), datetime('now', '+30 days'), ?)`,
+    [id, name.trim(), maxPlayers, startingChips, blindIntervalMinutes, tableTheme, createdBy]
   );
 
   const result = query('SELECT * FROM game_instances WHERE id = ?', [id]);
@@ -48,6 +49,7 @@ export function createGameInstance(
     createdAt: new Date(row.created_at),
     endDate: new Date(row.end_date),
     createdBy: row.created_by,
+    tableTheme: row.table_theme || 'classic-green',
   };
 }
 
