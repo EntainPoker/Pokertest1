@@ -152,6 +152,21 @@ export function useGameState() {
       handState.currentPlayerIndex = safeCurrentPlayerIndex;
       handState.lastAction = null; // Never store action objects
 
+      // CRITICAL: Strip hole cards from stored handState (Rule 16 — card privacy)
+      // At showdown: keep non-folded players' cards for reveal
+      // Otherwise: strip ALL cards (hero cards flow through myHoleCards only)
+      if (handState.bettingRound !== 'showdown') {
+        for (const p of handState.players) {
+          p.holeCards = [];
+        }
+      } else {
+        for (const p of handState.players) {
+          if (p.status === 'folded') {
+            p.holeCards = [];
+          }
+        }
+      }
+
       // Preserve existing hole cards (game:state sends sanitized state without cards)
       const existingHoleCards = useGameStore.getState().myHoleCards;
 
