@@ -6,9 +6,9 @@ interface CommunityCardsProps {
 }
 
 /**
- * Community cards display showing 0-5 cards in a row in the center of the table.
+ * Community cards display showing 0-5 cards in a compact row.
  * Cards are revealed progressively: flop (3), turn (4), river (5).
- * Premium styling with spacing and clear visibility against green felt.
+ * Mobile-first sizing with w-8 h-11 cards and tight gaps.
  * Satisfies Requirements 6.3.
  */
 export function CommunityCards({ cards }: CommunityCardsProps) {
@@ -16,13 +16,13 @@ export function CommunityCards({ cards }: CommunityCardsProps) {
   const slots = Array.from({ length: 5 }, (_, i) => cards[i] ?? null);
 
   return (
-    <div className="flex items-center justify-center gap-1.5 sm:gap-2.5" aria-label="Community cards">
+    <div className="flex items-center justify-center gap-1" aria-label="Community cards">
       {slots.map((card, i) => (
         <div key={i} className="flex-shrink-0">
           {card ? (
             <Card rank={card.rank} suit={card.suit} />
           ) : (
-            <div className="w-11 h-16 sm:w-[52px] sm:h-[78px] md:w-14 md:h-[84px] min-w-[44px] min-h-[44px] rounded-lg border border-green-700/40 bg-green-900/30 shadow-inner" aria-label="Empty card slot" />
+            <div className="w-8 h-11 rounded-md border border-green-700/40 bg-green-900/30 shadow-inner" aria-label="Empty card slot" />
           )}
         </div>
       ))}
