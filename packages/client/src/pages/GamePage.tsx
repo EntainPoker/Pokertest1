@@ -148,9 +148,13 @@ export function GamePage() {
   }, [gameId, handState, currentPlayerId, myHoleCards]);
 
   const handleBackToLobby = useCallback(() => {
+    // Leave the game room so we stop receiving state updates from this game
+    if (gameId) {
+      socket.emit('game:leave' as any, { gameId });
+    }
     useGameStore.getState().reset();
     navigate('/lobby');
-  }, [navigate]);
+  }, [navigate, gameId, socket]);
 
   // Keep a ref to the last valid handState to prevent blank flashes during transitions
   const lastHandStateRef = useRef(handState);
