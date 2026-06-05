@@ -280,11 +280,13 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
                     </span>
                   )}
                 </div>
-                {/* My hole cards — larger for visibility */}
+                {/* My hole cards — larger for visibility, with deal animation (Rule 249) */}
                 <div className="flex gap-1">
                   {getHoleCards(bottomIndex).length > 0
                     ? getHoleCards(bottomIndex).map((card, i) => (
-                        <Card key={i} rank={card.rank} suit={card.suit} />
+                        <div key={i} className="animate-card-deal" style={{ animationDelay: `${i * 150}ms` }}>
+                          <Card rank={card.rank} suit={card.suit} />
+                        </div>
                       ))
                     : !players[bottomIndex].status?.includes('folded') && (
                         <>
