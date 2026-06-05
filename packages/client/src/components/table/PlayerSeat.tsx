@@ -123,15 +123,24 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
         </span>
       )}
 
-      {/* Bet chip indicator — gold pill with amount, animates in on bet (Rule 253) */}
+      {/* Bet chips in front of player — visible chip stack with amount (Rule 86-89) */}
       {typeof player.currentBet === 'number' && player.currentBet > 0 && (
-        <span className="flex items-center gap-0.5 bg-gradient-to-r from-yellow-500 to-amber-600 text-gray-900 text-[9px] sm:text-xs font-bold px-2 py-0.5 rounded-full shadow-md animate-slide-in">
-          <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none">
-            <circle cx="6" cy="6" r="5" fill="#fbbf24" stroke="#92400e" strokeWidth="1"/>
-            <circle cx="6" cy="6" r="3" fill="#f59e0b"/>
-          </svg>
-          ${Number(player.currentBet)}
-        </span>
+        <div className="flex items-center gap-1 animate-slide-in">
+          {/* Chip stack visual */}
+          <div className="relative flex">
+            <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 border-2 border-amber-700 shadow-md" />
+            {player.currentBet >= 50 && (
+              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-red-400 to-red-600 border-2 border-red-800 shadow-md -ml-2" />
+            )}
+            {player.currentBet >= 200 && (
+              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-blue-800 shadow-md -ml-2" />
+            )}
+          </div>
+          {/* Amount label */}
+          <span className="text-[10px] sm:text-xs font-bold text-white bg-gray-900/80 px-1.5 py-0.5 rounded shadow">
+            ${Number(player.currentBet)}
+          </span>
+        </div>
       )}
 
       {/* Hole cards — face-down with overlapping tilt for opponents */}
