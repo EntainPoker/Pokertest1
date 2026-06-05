@@ -8,13 +8,19 @@ export function validateGameCreationParams(name: string, maxPlayers: number): { 
   }
   if (maxPlayers === undefined || maxPlayers === null || typeof maxPlayers !== 'number') {
     errors.push('Player count is required and must be a number');
-  } else if (!Number.isInteger(maxPlayers) || maxPlayers < 2 || maxPlayers > 6) {
-    errors.push('Player count must be an integer between 2 and 6');
+  } else if (!Number.isInteger(maxPlayers) || maxPlayers < 2 || maxPlayers > 10) {
+    errors.push('Player count must be an integer between 2 and 10');
   }
   return { valid: errors.length === 0, errors };
 }
 
-export function createGameInstance(name: string, maxPlayers: number, createdBy: string): GameInstance {
+export function createGameInstance(
+  name: string,
+  maxPlayers: number,
+  createdBy: string,
+  blindIntervalMinutes: number = 3,
+  startingChips: number = 500,
+): GameInstance {
   const validation = validateGameCreationParams(name, maxPlayers);
   if (!validation.valid) throw new Error(validation.errors.join('; '));
 
@@ -22,8 +28,8 @@ export function createGameInstance(name: string, maxPlayers: number, createdBy: 
 
   query(
     `INSERT INTO game_instances (id, name, format, max_players, buy_in, starting_chips, blind_interval_minutes, status, created_at, end_date, created_by)
-     VALUES (?, ?, 'texas_holdem', ?, 1, 500, 3, 'open', datetime('now'), datetime('now', '+30 days'), ?)`,
-    [id, name.trim(), maxPlayers, createdBy]
+     VALUES (?, ?, 'texas_holdem', ?, 1, ?, ?, 'open', datetime('now'), datetime('now', '+30 days'), ?)`,
+    [id, name.trim(), maxPlayers, startingChips, blindIntervalMinutes, createdBy]
   );
 
   const result = query('SELECT * FROM game_instances WHERE id = ?', [id]);
