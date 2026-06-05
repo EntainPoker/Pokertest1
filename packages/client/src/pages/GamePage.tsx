@@ -230,54 +230,17 @@ export function GamePage() {
   }
 
   return (
-    <div className="h-screen max-h-[100dvh] bg-gray-900 flex flex-col overflow-hidden">
-      {/* Game header — compact */}
-      <nav className="shrink-0 bg-gray-800 border-b border-gray-700 px-3 py-1">
-        <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={handleBackToLobby}
-            className="min-h-[36px] min-w-[36px] px-2 py-1 rounded-md text-xs font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
-          >
-            ← Lobby
-          </button>
-
-          <div className="flex items-center gap-2">
-            {/* Blind timer */}
-            {tournament && tournament.blindSchedule && tournament.blindSchedule.length > 0 && (
-              <BlindTimer
-                currentLevel={tournament.blindSchedule[Math.max(0, tournament.currentBlindLevel - 1)] ?? tournament.blindSchedule[0]}
-                nextLevel={tournament.blindSchedule[tournament.currentBlindLevel] ?? null}
-                timeRemaining={turnTimeRemaining}
-              />
-            )}
-
-            {/* Tournament lobby button */}
-            {tournament && (
-              <button
-                type="button"
-                onClick={() => setShowTournamentLobby(true)}
-                className="min-h-[36px] min-w-[36px] px-2 py-1 rounded-md text-xs font-medium text-poker-gold border border-poker-gold/50 hover:bg-poker-gold/10 transition-colors"
-                aria-label="Open tournament lobby"
-              >
-                Tournament
-              </button>
-            )}
-          </div>
-        </div>
-      </nav>
-
-      {/* Poker table — fills remaining space */}
-      <main className="flex-1 min-h-0">
-        <ErrorBoundary>
-          <PokerTable
-            handState={displayHandState}
-            currentPlayerId={currentPlayerId}
-            gameId={gameId}
-            turnTimeRemaining={turnTimeRemaining}
-          />
-        </ErrorBoundary>
-      </main>
+    <div className="h-[100dvh] flex flex-col overflow-hidden">
+      <ErrorBoundary>
+        <PokerTable
+          handState={displayHandState}
+          currentPlayerId={currentPlayerId}
+          gameId={gameId}
+          turnTimeRemaining={turnTimeRemaining}
+          tournament={tournament}
+          onBackToLobby={handleBackToLobby}
+        />
+      </ErrorBoundary>
 
       {/* Tournament lobby overlay */}
       {showTournamentLobby && tournament && (
