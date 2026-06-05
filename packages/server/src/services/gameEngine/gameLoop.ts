@@ -24,6 +24,13 @@ import type {
 // Types
 // ============================================================
 
+interface RecordedAction {
+  playerId: string;
+  bettingRound: 'preflop' | 'flop' | 'turn' | 'river';
+  action: PlayerAction;
+  timestamp: Date;
+}
+
 interface GameLoopInstance {
   gameInstanceId: string;
   positionManager: PositionManager;
@@ -35,6 +42,10 @@ interface GameLoopInstance {
   eliminatedCount: number;
   /** Map of playerId -> hole cards (server-side secret) */
   playerHoleCards: Map<string, Card[]>;
+  /** Actions recorded during the current hand */
+  handActions: RecordedAction[];
+  /** Starting chip counts for this hand (for history) */
+  startingChipCounts: Map<string, number>;
 }
 
 /** Active game loop instances keyed by gameInstanceId */
@@ -85,7 +96,7 @@ export function startGameLoop(gameInstanceId: string): void {
   blindManager.start();
 
   // Initialize turn timer with auto-fold on timeout
-  const turnTimer = new TurnTimer(30, (gameId, playerId) => {
+  const turnTimer = new TurnTimer(15, (gameId, playerId) => {
     handleTimeout(gameId, playerId);
   });
 
@@ -99,6 +110,8 @@ export function startGameLoop(gameInstanceId: string): void {
     handNumber: 0,
     eliminatedCount: 0,
     playerHoleCards: new Map(),
+    handActions: [],
+    startingChipCounts: new Map(),
   };
 
   gameLoops.set(gameInstanceId, instance);
