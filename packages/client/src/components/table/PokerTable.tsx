@@ -36,6 +36,16 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
   const [showLastHand, setShowLastHand] = useState(false);
   const myHoleCards = useGameStore((s) => s.myHoleCards);
 
+  // Theme color classes for the oval table surface
+  const themeClasses: Record<string, string> = {
+    'classic-green': 'from-green-600 via-green-700 to-green-800',
+    'dark-blue': 'from-blue-800 via-blue-900 to-blue-950',
+    'red-velvet': 'from-red-800 via-red-900 to-red-950',
+    'midnight-purple': 'from-purple-800 via-purple-900 to-purple-950',
+    'pink-felt': 'from-pink-600 via-pink-700 to-pink-800',
+  };
+  const tableColorClass = themeClasses[tableTheme || 'classic-green'] || themeClasses['classic-green'];
+
   // Track last action per player for action badge display
   const [playerActions, setPlayerActions] = useState<Record<string, string>>({});
   const prevPlayersRef = useRef<typeof players>([]);
