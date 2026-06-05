@@ -218,8 +218,8 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
 
       {/* ZONE 2: Table area — fills remaining space, oval poker table */}
       <div className="flex-1 min-h-0 flex flex-col justify-center items-center bg-gradient-to-b from-gray-800 via-stone-900 to-gray-950 px-2 py-1">
-        {/* Oval table surface */}
-        <div className={`w-full max-w-lg flex-1 min-h-0 flex flex-col justify-between items-center rounded-[50%/40%] bg-gradient-to-br ${tableColorClass} border-[5px] border-gray-900 shadow-2xl px-4 py-3 relative overflow-hidden`}>
+        {/* Oval table surface — constrained height on desktop */}
+        <div className={`w-full max-w-lg lg:max-w-xl max-h-[55vh] sm:max-h-[60vh] lg:max-h-[65vh] flex flex-col justify-between items-center rounded-[50%/40%] bg-gradient-to-br ${tableColorClass} border-[5px] border-gray-900 shadow-2xl px-4 py-2 sm:py-3 relative overflow-hidden`}>
           {/* Subtle inner felt edge */}
           <div className="absolute inset-2 rounded-[50%/40%] border border-green-500/20 pointer-events-none" />
 

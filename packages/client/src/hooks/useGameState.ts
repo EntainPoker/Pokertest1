@@ -147,17 +147,17 @@ export function useGameState() {
       const currentTurnPlayer = handState.players[handState.currentPlayerIndex];
       const isMyTurn = currentTurnPlayer?.playerId === currentPlayerId;
 
-      // Don't override turnTimeRemaining here — let game:turn event control it
-      // Only set it if it's now our turn and we haven't received a game:turn event yet
-      const currentTimeRemaining = useGameStore.getState().turnTimeRemaining;
-      const shouldResetTimer = isMyTurn && (!prevHandState || prevHandState.currentPlayerIndex !== handState.currentPlayerIndex);
+      // ALWAYS reset timer to full 15 when the acting player changes (Rule 64)
+      // Each action gets a fresh 15 seconds — timer never carries over
+      const prevHandState = useGameStore.getState().handState;
+      const playerChanged = !prevHandState || prevHandState.currentPlayerIndex !== handState.currentPlayerIndex;
 
       useGameStore.setState({
         handState,
         tournament,
         myHoleCards,
         isMyTurn,
-        turnTimeRemaining: shouldResetTimer ? handState.turnTimeoutSeconds : currentTimeRemaining,
+        turnTimeRemaining: playerChanged ? handState.turnTimeoutSeconds : useGameStore.getState().turnTimeRemaining,
         tableTheme: tableTheme || useGameStore.getState().tableTheme || 'classic-green',
       });
     };
@@ -166,9 +166,9 @@ export function useGameState() {
     const handleGameTurn = (payload: GameTurnPayload) => {
       const isMyTurn = payload.playerId === currentPlayerId;
 
-      // Also update currentPlayerIndex in hand state so ActionPanel shows correctly
+      // ALWAYS reset timer to full value (15s) on every new turn (Rule 64)
       useGameStore.setState((state) => {
-        if (!state.handState) return { isMyTurn, turnTimeRemaining: isMyTurn ? payload.timeRemaining : 0 };
+        if (!state.handState) return { isMyTurn, turnTimeRemaining: payload.timeRemaining };
         
         const playerIndex = state.handState.players.findIndex(
           p => p.playerId === payload.playerId
@@ -176,7 +176,7 @@ export function useGameState() {
         
         return {
           isMyTurn,
-          turnTimeRemaining: isMyTurn ? payload.timeRemaining : payload.timeRemaining,
+          turnTimeRemaining: payload.timeRemaining,
           handState: {
             ...state.handState,
             currentPlayerIndex: playerIndex >= 0 ? playerIndex : state.handState.currentPlayerIndex,
