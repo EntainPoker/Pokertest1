@@ -40,6 +40,15 @@ async function seedTestAccounts(): Promise<void> {
     console.log('  Created default game instance: Spin & Go #1');
   }
 
+  // Seed admin account
+  const adminHash = await bcrypt.hash('admin123', SALT_ROUNDS);
+  query(
+    `INSERT OR IGNORE INTO admin_accounts (id, username, password_hash, created_at)
+     VALUES (lower(hex(randomblob(16))), 'admin', ?, datetime('now'))`,
+    [adminHash]
+  );
+  console.log('  Seeded admin account: admin / admin123');
+
   console.log('Seeding complete.');
 }
 

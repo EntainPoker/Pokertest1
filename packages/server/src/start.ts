@@ -24,7 +24,15 @@ for (const account of TEST_ACCOUNTS) {
   );
 }
 
-// Step 3: Seed default games if none exist
+// Step 3: Seed admin account
+const adminHash = await bcrypt.hash('admin123', 10);
+query(
+  `INSERT OR IGNORE INTO admin_accounts (id, username, password_hash, created_at)
+   VALUES (lower(hex(randomblob(16))), 'admin', ?, datetime('now'))`,
+  [adminHash]
+);
+
+// Step 4: Seed default games if none exist
 const existing = query(`SELECT id FROM game_instances WHERE status = 'open' LIMIT 1`, []);
 if (existing.rows.length === 0) {
   query(
@@ -41,5 +49,5 @@ if (existing.rows.length === 0) {
 
 console.log('Database seeded. Starting server...');
 
-// Step 4: Start the server
+// Step 5: Start the server
 await import('./index.js');

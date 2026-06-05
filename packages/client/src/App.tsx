@@ -5,6 +5,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import { LobbyPage } from './pages/LobbyPage';
 import { GamePage } from './pages/GamePage';
 import { AdminPage } from './pages/AdminPage';
+import { AdminLoginPage } from './pages/AdminLoginPage';
 
 function App() {
   return (
@@ -14,7 +15,11 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* Protected routes */}
+        {/* Admin routes (separate auth system) */}
+        <Route path="/admin/login" element={<AdminLoginPage />} />
+        <Route path="/admin" element={<AdminPage />} />
+
+        {/* Protected routes (player auth) */}
         <Route
           path="/lobby"
           element={
@@ -28,14 +33,6 @@ function App() {
           element={
             <AuthGuard>
               <GamePage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/admin"
-          element={
-            <AuthGuard>
-              <AdminPage />
             </AuthGuard>
           }
         />

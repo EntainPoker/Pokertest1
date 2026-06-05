@@ -85,6 +85,15 @@ export function runSQLiteMigrations(): void {
     );
 
     CREATE INDEX IF NOT EXISTS idx_hand_histories_tournament ON hand_histories (tournament_id);
+
+    CREATE TABLE IF NOT EXISTS admin_accounts (
+      id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+      username TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_admin_accounts_username ON admin_accounts (username);
   `);
 
   console.log('SQLite database tables created successfully.');
