@@ -170,6 +170,14 @@ export function handlePlayerAction(
   handState.players[handState.currentPlayerIndex] = result.updatedPlayer!;
   handState.lastAction = result.processedAction!;
 
+  // Record the action for hand history
+  instance.handActions.push({
+    playerId,
+    bettingRound: handState.bettingRound as 'preflop' | 'flop' | 'turn' | 'river',
+    action: result.processedAction!,
+    timestamp: new Date(),
+  });
+
   // Update the betting round tracker
   if (instance.bettingRound) {
     const allInBet = result.processedAction!.type === 'all_in'
@@ -267,6 +275,10 @@ function startNewHand(gameInstanceId: string): void {
 
   // Clear hole cards map
   instance.playerHoleCards.clear();
+
+  // Reset actions for new hand
+  instance.handActions = [];
+  instance.startingChipCounts = new Map();
 
   // Build player list for this hand (only active tournament players)
   const activeTournamentPlayers = gameState.tournament.players.filter(
