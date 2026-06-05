@@ -24,6 +24,8 @@ export interface GameState {
   gameStatus: GameStatus;
   /** Final tournament result when game ends */
   tournamentResult: TournamentResult | null;
+  /** Table theme from game instance */
+  tableTheme: string;
 
   /** Replace the full game state (hand + tournament) */
   setGameState: (handState: HandState, tournament: Tournament) => void;
@@ -54,6 +56,7 @@ const initialState = {
   turnTimeRemaining: 0,
   gameStatus: 'waiting' as GameStatus,
   tournamentResult: null,
+  tableTheme: 'classic-green',
 };
 
 export const useGameStore = create<GameState>((set) => ({
