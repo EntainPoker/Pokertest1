@@ -314,16 +314,43 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
           })}
         </div>
 
-        {/* === TABLE OVAL — center, only contains pot + community cards === */}
-        <div className={`relative w-full max-w-md lg:max-w-lg aspect-[16/9] flex flex-col items-center justify-center rounded-[50%/42%] bg-gradient-to-br ${tableColorClass} shadow-[inset_0_2px_20px_rgba(0,0,0,0.3),0_8px_32px_rgba(0,0,0,0.6)] overflow-visible`}>
+        {/* === TABLE OVAL — bigger, contains pot + community cards + bet chips === */}
+        <div className={`relative w-full max-w-xl lg:max-w-2xl flex-1 min-h-0 flex flex-col items-center justify-center rounded-[50%/42%] bg-gradient-to-br ${tableColorClass} shadow-[inset_0_2px_20px_rgba(0,0,0,0.3),0_8px_32px_rgba(0,0,0,0.6)] overflow-visible`}>
           <div className="absolute inset-0 rounded-[50%/42%] border-[6px] sm:border-[8px] border-gray-800 shadow-[inset_0_4px_12px_rgba(0,0,0,0.5)] pointer-events-none" />
           <div className="absolute inset-[8px] sm:inset-[10px] rounded-[50%/42%] border border-green-400/15 pointer-events-none" />
           <div className="absolute inset-0 rounded-[50%/42%] bg-gradient-to-b from-black/10 via-transparent to-black/20 pointer-events-none" />
 
+          {/* Opponent bet chips — top area of table, below opponent */}
+          {topIndices.map((idx) => {
+            const p = players[idx];
+            if (!p || !p.currentBet || p.currentBet <= 0) return null;
+            return (
+              <div key={`bet-${p.playerId}`} className="absolute top-[18%] left-1/2 -translate-x-1/2 z-10 flex items-center gap-1">
+                <div className="relative flex">
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 border-2 border-amber-700 shadow-md" />
+                  {p.currentBet >= 50 && <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-red-400 to-red-600 border-2 border-red-800 shadow-md -ml-2" />}
+                </div>
+                <span className="text-[10px] sm:text-xs font-bold text-white bg-gray-900/70 px-1.5 py-0.5 rounded">${p.currentBet}</span>
+              </div>
+            );
+          })}
+
+          {/* Center content: pot + community cards */}
           <div className="flex flex-col items-center gap-2 z-10">
             <PotDisplay amount={safePot} sidePots={safeSidePots} />
             <CommunityCards cards={communityCards} />
           </div>
+
+          {/* Hero bet chips — bottom area of table, above hero */}
+          {heroPlayer && typeof heroPlayer.currentBet === 'number' && heroPlayer.currentBet > 0 && (
+            <div className="absolute bottom-[18%] left-1/2 -translate-x-1/2 z-10 flex items-center gap-1">
+              <div className="relative flex">
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 border-2 border-amber-700 shadow-md" />
+                {heroPlayer.currentBet >= 50 && <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-red-400 to-red-600 border-2 border-red-800 shadow-md -ml-2" />}
+              </div>
+              <span className="text-[10px] sm:text-xs font-bold text-white bg-gray-900/70 px-1.5 py-0.5 rounded">${heroPlayer.currentBet}</span>
+            </div>
+          )}
         </div>
 
         {/* === HERO SECTION — at the very BOTTOM, BELOW the table === */}
