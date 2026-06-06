@@ -238,12 +238,12 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
         <LastHandSummary gameId={gameId} onClose={() => setShowLastHand(false)} />
       )}
 
-      {/* ZONE 2: Table Area */}
-      <div className="flex-1 min-h-0 flex flex-col items-center justify-center bg-gray-900 px-3 py-2 relative">
+      {/* ZONE 2: Table Area — 3 stacked sections: Opponent / Table Oval / Hero */}
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-between bg-gray-900 px-3 py-1 relative">
 
-        {/* Win notification — above the table */}
+        {/* Win notification — above everything */}
         {handState?.bettingRound === 'showdown' && Object.keys(playerActions).some(id => playerActions[id]?.startsWith('WINS')) && (
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30">
+          <div className="absolute top-1 left-1/2 -translate-x-1/2 z-30">
             {Object.entries(playerActions).filter(([, action]) => action?.startsWith('WINS')).map(([playerId, action]) => {
               const winPlayer = players.find(p => p.playerId === playerId);
               return (
@@ -255,184 +255,126 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
           </div>
         )}
 
-        {/* Oval table with 3D dark thick border and bright green felt */}
-        <div className={`relative w-full max-w-lg lg:max-w-2xl aspect-[16/10] sm:aspect-[16/9] flex flex-col items-center justify-between rounded-[50%/42%] bg-gradient-to-br ${tableColorClass} shadow-[inset_0_2px_20px_rgba(0,0,0,0.3),0_8px_32px_rgba(0,0,0,0.6)] px-6 sm:px-10 py-4 sm:py-6 overflow-visible`}>
-          {/* 3D border effect — outer dark thick edge */}
+        {/* === OPPONENT SECTION — at the very TOP, ABOVE the table === */}
+        <div className="shrink-0 flex flex-col items-center pt-1">
+          {topIndices.map((idx) => {
+            const p = players[idx];
+            if (!p) return null;
+            const isFolded = p.status === 'folded';
+            const actionText = playerActions[p.playerId];
+            const isWinner = actionText?.startsWith('WINS');
+            const opponentCards = getHoleCards(idx);
+            const showFaceUp = shouldShowCards(idx);
+
+            return (
+              <div key={p.playerId} className={`flex flex-col items-center ${isFolded ? 'opacity-40 grayscale' : ''}`}>
+                {/* Opponent hole cards */}
+                <div className="flex mb-1">
+                  {showFaceUp && opponentCards.length > 0 ? (
+                    opponentCards.map((card, i) => (
+                      <div key={i} className={`${i === 1 ? '-ml-4' : ''}`}>
+                        <Card rank={card.rank} suit={card.suit} />
+                      </div>
+                    ))
+                  ) : !isFolded ? (
+                    <>
+                      <div className="-rotate-3"><Card faceDown /></div>
+                      <div className="-ml-4 rotate-3"><Card faceDown /></div>
+                    </>
+                  ) : null}
+                </div>
+
+                {/* Name pill + avatar */}
+                <div className="flex items-center gap-1.5">
+                  <div className={`bg-gray-900/90 border rounded-full px-3 py-1 shadow-lg flex items-center gap-1.5 ${
+                    isWinner ? 'border-yellow-400/70' : currentPlayerIndex === idx ? 'border-poker-gold/70' : 'border-gray-700'
+                  }`}>
+                    {positionLabels.get(idx) && (
+                      <span className={`text-[7px] sm:text-[8px] font-bold px-1 py-0.5 rounded ${
+                        positionLabels.get(idx) === 'BTN' ? 'bg-white text-gray-900' :
+                        positionLabels.get(idx) === 'SB' ? 'bg-blue-600/80 text-white' :
+                        positionLabels.get(idx) === 'BB' ? 'bg-orange-600/80 text-white' :
+                        'bg-gray-700/80 text-gray-300'
+                      }`}>{positionLabels.get(idx)}</span>
+                    )}
+                    <div className="flex flex-col items-center leading-tight">
+                      <span className="text-[10px] sm:text-xs text-gray-100 font-medium truncate max-w-[56px]">{p.username}</span>
+                      <span className="text-[10px] sm:text-xs text-poker-gold font-bold">${p.chipCount}</span>
+                    </div>
+                    {actionText && !isWinner && (
+                      <span className="text-[7px] sm:text-[8px] font-bold text-amber-300 bg-gray-800 px-1 py-0.5 rounded-sm">{actionText}</span>
+                    )}
+                  </div>
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm shadow-md bg-gradient-to-br ${getAvatarGradient(p.username)} ${
+                    currentPlayerIndex === idx ? 'ring-2 ring-poker-gold animate-pulse' : 'ring-2 ring-gray-600/50'
+                  }`}>{p.username.charAt(0).toUpperCase()}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* === TABLE OVAL — center, only contains pot + community cards === */}
+        <div className={`relative w-full max-w-md lg:max-w-lg aspect-[16/9] flex flex-col items-center justify-center rounded-[50%/42%] bg-gradient-to-br ${tableColorClass} shadow-[inset_0_2px_20px_rgba(0,0,0,0.3),0_8px_32px_rgba(0,0,0,0.6)] overflow-visible`}>
           <div className="absolute inset-0 rounded-[50%/42%] border-[6px] sm:border-[8px] border-gray-800 shadow-[inset_0_4px_12px_rgba(0,0,0,0.5)] pointer-events-none" />
-          {/* Inner felt edge highlight */}
-          <div className="absolute inset-[8px] sm:inset-[10px] rounded-[50%/42%] border border-green-400/20 pointer-events-none" />
-          {/* Darker gradient at edges for 3D depth */}
+          <div className="absolute inset-[8px] sm:inset-[10px] rounded-[50%/42%] border border-green-400/15 pointer-events-none" />
           <div className="absolute inset-0 rounded-[50%/42%] bg-gradient-to-b from-black/10 via-transparent to-black/20 pointer-events-none" />
 
-          {/* === OPPONENT SECTION (top) === */}
-          <div className="flex flex-col items-center z-10 -mt-1">
-            {topIndices.map((idx) => {
-              const p = players[idx];
-              if (!p) return null;
-              const isFolded = p.status === 'folded';
-              const actionText = playerActions[p.playerId];
-              const isWinner = actionText?.startsWith('WINS');
-              const opponentCards = getHoleCards(idx);
-              const showFaceUp = shouldShowCards(idx);
-
-              return (
-                <div key={p.playerId} className={`flex flex-col items-center ${isFolded ? 'opacity-40 grayscale' : ''}`}>
-                  {/* Opponent hole cards — ABOVE the name pill, larger and prominent */}
-                  <div className="flex mb-1.5">
-                    {showFaceUp && opponentCards.length > 0 ? (
-                      opponentCards.map((card, i) => (
-                        <div key={i} className={`${i === 1 ? '-ml-4' : ''} animate-card-flip`}>
-                          <Card rank={card.rank} suit={card.suit} />
-                        </div>
-                      ))
-                    ) : !isFolded ? (
-                      <>
-                        <div className="-rotate-3">
-                          <Card faceDown />
-                        </div>
-                        <div className="-ml-4 rotate-3">
-                          <Card faceDown />
-                        </div>
-                      </>
-                    ) : null}
-                  </div>
-
-                  {/* Name/stack pill + avatar row */}
-                  <div className="flex items-center gap-1.5">
-                    {/* Name pill (dark capsule with action badge) */}
-                    <div className={`bg-gray-900/90 border rounded-full px-3 py-1 shadow-lg flex items-center gap-1.5 ${
-                      isWinner ? 'border-yellow-400/70' : currentPlayerIndex === idx ? 'border-poker-gold/70' : 'border-gray-700'
-                    }`}>
-                      {/* Position label */}
-                      {positionLabels.get(idx) && (
-                        <span className={`text-[7px] sm:text-[8px] font-bold px-1 py-0.5 rounded ${
-                          positionLabels.get(idx) === 'BTN' ? 'bg-white text-gray-900' :
-                          positionLabels.get(idx) === 'SB' ? 'bg-blue-600/80 text-white' :
-                          positionLabels.get(idx) === 'BB' ? 'bg-orange-600/80 text-white' :
-                          'bg-gray-700/80 text-gray-300'
-                        }`}>
-                          {positionLabels.get(idx)}
-                        </span>
-                      )}
-                      <div className="flex flex-col items-center leading-tight">
-                        <span className="text-[10px] sm:text-xs text-gray-100 font-medium truncate max-w-[56px]">{p.username}</span>
-                        <span className="text-[10px] sm:text-xs text-poker-gold font-bold">${p.chipCount}</span>
-                      </div>
-                      {/* Action badge inside pill */}
-                      {actionText && !isWinner && (
-                        <span className="text-[7px] sm:text-[8px] font-bold text-amber-300 bg-gray-800 px-1 py-0.5 rounded-sm">
-                          {actionText}
-                        </span>
-                      )}
-                    </div>
-                    {/* Avatar circle — to the RIGHT of name pill */}
-                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm shadow-md bg-gradient-to-br ${getAvatarGradient(p.username)} ${
-                      currentPlayerIndex === idx ? 'ring-2 ring-poker-gold animate-pulse' : 'ring-2 ring-gray-600/50'
-                    }`}>
-                      {p.username.charAt(0).toUpperCase()}
-                    </div>
-                  </div>
-
-                  {/* Bet chips for opponent */}
-                  {typeof p.currentBet === 'number' && p.currentBet > 0 && (
-                    <div className="flex items-center gap-1 mt-1">
-                      <div className="relative flex">
-                        <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 border-2 border-amber-700 shadow-sm" />
-                        {p.currentBet >= 50 && <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-gradient-to-br from-red-400 to-red-600 border-2 border-red-800 shadow-sm -ml-1.5" />}
-                      </div>
-                      <span className="text-[9px] sm:text-[10px] font-bold text-white bg-gray-900/80 px-1 py-0.5 rounded">${p.currentBet}</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* === CENTER: Pot + Community Cards + Chips === */}
-          <div className="flex flex-col items-center gap-1.5 z-10">
+          <div className="flex flex-col items-center gap-2 z-10">
             <PotDisplay amount={safePot} sidePots={safeSidePots} />
             <CommunityCards cards={communityCards} />
           </div>
+        </div>
 
-          {/* === HERO SECTION (bottom) === */}
-          {heroPlayer && (
-            <div className="flex flex-col items-center z-10 mb-0">
-              {/* Dealer button indicator above hero cards */}
-              {dealerPosition === bottomIndex && (
-                <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white text-gray-900 text-[8px] sm:text-[10px] font-black flex items-center justify-center shadow-md border border-gray-300 mb-1">D</span>
-              )}
-
-              {/* Hero hole cards — ABOVE the name pill, larger */}
-              <div className="flex mb-1.5">
-                {getHoleCards(bottomIndex).length > 0 ? (
-                  getHoleCards(bottomIndex).map((card, i) => (
-                    <div key={i} className={`${i === 1 ? '-ml-4 sm:-ml-5' : ''} animate-card-deal`} style={{ animationDelay: `${i * 150}ms` }}>
-                      <div className="scale-110 sm:scale-125 origin-bottom">
-                        <Card rank={card.rank} suit={card.suit} />
-                      </div>
-                    </div>
-                  ))
-                ) : !heroPlayer.status?.includes('folded') ? (
-                  <>
+        {/* === HERO SECTION — at the very BOTTOM, BELOW the table === */}
+        {heroPlayer && (
+          <div className="shrink-0 flex flex-col items-center pb-1">
+            {/* Hero hole cards — large */}
+            <div className="flex mb-1">
+              {getHoleCards(bottomIndex).length > 0 ? (
+                getHoleCards(bottomIndex).map((card, i) => (
+                  <div key={i} className={`${i === 1 ? '-ml-4 sm:-ml-5' : ''}`}>
                     <div className="scale-110 sm:scale-125 origin-bottom">
-                      <Card faceDown />
+                      <Card rank={card.rank} suit={card.suit} />
                     </div>
-                    <div className="-ml-4 sm:-ml-5 scale-110 sm:scale-125 origin-bottom">
-                      <Card faceDown />
-                    </div>
-                  </>
-                ) : null}
-              </div>
-
-              {/* Name/stack pill + avatar row */}
-              <div className="flex items-center gap-1.5">
-                {/* Avatar circle — to the LEFT of name pill for hero */}
-                <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base shadow-lg bg-gradient-to-br ${getAvatarGradient(heroPlayer.username)} ${
-                  currentPlayerIndex === bottomIndex ? 'ring-2 ring-poker-gold' : 'ring-2 ring-gray-600/50'
-                }`}>
-                  {heroPlayer.username.charAt(0).toUpperCase()}
-                </div>
-
-                {/* Name pill (dark capsule with action badge) */}
-                <div className={`bg-gray-900/90 border rounded-full px-3 py-1 shadow-lg flex items-center gap-1.5 ${
-                  heroIsWinner ? 'border-yellow-400/70' : currentPlayerIndex === bottomIndex ? 'border-poker-gold/70' : 'border-gray-700'
-                }`}>
-                  {/* Position label */}
-                  {positionLabels.get(bottomIndex) && (
-                    <span className={`text-[7px] sm:text-[8px] font-bold px-1 py-0.5 rounded ${
-                      positionLabels.get(bottomIndex) === 'BTN' ? 'bg-white text-gray-900' :
-                      positionLabels.get(bottomIndex) === 'SB' ? 'bg-blue-600/80 text-white' :
-                      positionLabels.get(bottomIndex) === 'BB' ? 'bg-orange-600/80 text-white' :
-                      'bg-gray-700/80 text-gray-300'
-                    }`}>
-                      {positionLabels.get(bottomIndex)}
-                    </span>
-                  )}
-                  <div className="flex flex-col items-center leading-tight">
-                    <span className="text-[10px] sm:text-xs text-gray-100 font-medium truncate max-w-[64px]">{heroPlayer.username}</span>
-                    <span className="text-[10px] sm:text-xs text-poker-gold font-bold">${heroPlayer.chipCount}</span>
                   </div>
-                  {/* Action badge inside pill */}
-                  {heroActionText && !heroIsWinner && (
-                    <span className="text-[7px] sm:text-[8px] font-bold text-amber-300 bg-gray-800 px-1 py-0.5 rounded-sm">
-                      {heroActionText}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Hero bet chips */}
-              {typeof heroPlayer.currentBet === 'number' && heroPlayer.currentBet > 0 && (
-                <div className="flex items-center gap-1 mt-1">
-                  <div className="relative flex">
-                    <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 border-2 border-amber-700 shadow-sm" />
-                    {heroPlayer.currentBet >= 50 && <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-gradient-to-br from-red-400 to-red-600 border-2 border-red-800 shadow-sm -ml-1.5" />}
-                  </div>
-                  <span className="text-[9px] sm:text-[10px] font-bold text-white bg-gray-900/80 px-1 py-0.5 rounded">${heroPlayer.currentBet}</span>
-                </div>
-              )}
+                ))
+              ) : !heroPlayer.status?.includes('folded') ? (
+                <>
+                  <div className="scale-110 sm:scale-125 origin-bottom"><Card faceDown /></div>
+                  <div className="-ml-4 sm:-ml-5 scale-110 sm:scale-125 origin-bottom"><Card faceDown /></div>
+                </>
+              ) : null}
             </div>
-          )}
+
+            {/* Avatar + Name pill */}
+            <div className="flex items-center gap-1.5">
+              <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base shadow-lg bg-gradient-to-br ${getAvatarGradient(heroPlayer.username)} ${
+                currentPlayerIndex === bottomIndex ? 'ring-2 ring-poker-gold' : 'ring-2 ring-gray-600/50'
+              }`}>{heroPlayer.username.charAt(0).toUpperCase()}</div>
+
+              <div className={`bg-gray-900/90 border rounded-full px-3 py-1 shadow-lg flex items-center gap-1.5 ${
+                heroIsWinner ? 'border-yellow-400/70' : currentPlayerIndex === bottomIndex ? 'border-poker-gold/70' : 'border-gray-700'
+              }`}>
+                {positionLabels.get(bottomIndex) && (
+                  <span className={`text-[7px] sm:text-[8px] font-bold px-1 py-0.5 rounded ${
+                    positionLabels.get(bottomIndex) === 'BTN' ? 'bg-white text-gray-900' :
+                    positionLabels.get(bottomIndex) === 'SB' ? 'bg-blue-600/80 text-white' :
+                    positionLabels.get(bottomIndex) === 'BB' ? 'bg-orange-600/80 text-white' :
+                    'bg-gray-700/80 text-gray-300'
+                  }`}>{positionLabels.get(bottomIndex)}</span>
+                )}
+                <div className="flex flex-col items-center leading-tight">
+                  <span className="text-[10px] sm:text-xs text-gray-100 font-medium truncate max-w-[64px]">{heroPlayer.username}</span>
+                  <span className="text-[10px] sm:text-xs text-poker-gold font-bold">${heroPlayer.chipCount}</span>
+                </div>
+                {heroActionText && !heroIsWinner && (
+                  <span className="text-[7px] sm:text-[8px] font-bold text-amber-300 bg-gray-800 px-1 py-0.5 rounded-sm">{heroActionText}</span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
         </div>
       </div>
 
