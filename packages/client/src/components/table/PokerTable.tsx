@@ -375,7 +375,6 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
             </div>
           </div>
         )}
-        </div>
       </div>
 
       {/* ZONE 3: Betting controls (handled by ActionPanel) */}
