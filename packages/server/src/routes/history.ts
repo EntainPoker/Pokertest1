@@ -44,7 +44,6 @@ router.get('/player', async (req: AuthenticatedRequest, res: Response) => {
         netChipChange = row.pot_total || 0;
       } else {
         // Loser — find their total bet from the result or estimate
-        const playerEntry = players.find((p: any) => p.playerId === playerId || p.id === playerId);
         if (resultData.playerResults) {
           const playerResult = resultData.playerResults.find((pr: any) => pr.playerId === playerId);
           netChipChange = playerResult?.netChange ?? -(row.pot_total / Math.max(players.length - 1, 1));
