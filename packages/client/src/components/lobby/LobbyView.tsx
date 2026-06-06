@@ -6,7 +6,7 @@ import { useSocket } from '../../hooks/useSocket';
 import { GameInstanceCard } from './GameInstanceCard';
 import { EmptyLobbyMessage } from './EmptyLobbyMessage';
 
-type FilterTab = 'spin-and-go' | 'heads-up';
+type FilterTab = 'spin-and-go' | 'heads-up' | 'tourneys';
 
 export function LobbyView() {
   const navigate = useNavigate();
@@ -90,9 +90,18 @@ export function LobbyView() {
     if (activeTab === 'heads-up') {
       return game.maxPlayers === 2;
     }
+    if (activeTab === 'tourneys') {
+      return false; // Coming soon — no games to show
+    }
     // spin-and-go: 3+ players
     return game.maxPlayers >= 3;
   });
+
+  const tabs: { key: FilterTab; label: string }[] = [
+    { key: 'spin-and-go', label: 'Spin & Go' },
+    { key: 'heads-up', label: 'Heads Up' },
+    { key: 'tourneys', label: 'Tourneys' },
+  ];
 
   return (
     <div className="px-4 py-4 sm:px-6 lg:px-8">
@@ -123,31 +132,25 @@ export function LobbyView() {
         </div>
       )}
 
-      {/* Filter tabs */}
-      <div className="max-w-7xl mx-auto mb-4">
-        <div className="flex gap-1 border-b border-gray-800">
-          <button
-            type="button"
-            onClick={() => setActiveTab('spin-and-go')}
-            className={`min-h-[44px] px-5 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
-              activeTab === 'spin-and-go'
-                ? 'text-poker-gold border-poker-gold'
-                : 'text-gray-500 border-transparent hover:text-gray-300'
-            }`}
-          >
-            Spin &amp; Go
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('heads-up')}
-            className={`min-h-[44px] px-5 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
-              activeTab === 'heads-up'
-                ? 'text-poker-gold border-poker-gold'
-                : 'text-gray-500 border-transparent hover:text-gray-300'
-            }`}
-          >
-            Heads Up
-          </button>
+      {/* Premium filter tabs */}
+      <div className="max-w-7xl mx-auto mb-6">
+        <div className="bg-gray-900/60 backdrop-blur-sm rounded-xl border border-gray-800/50 px-2 py-1">
+          <div className="flex gap-1">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveTab(tab.key)}
+                className={`min-h-[48px] px-6 py-3 text-base font-bold rounded-lg border-b-3 transition-all ${
+                  activeTab === tab.key
+                    ? 'text-poker-gold border-b-2 border-poker-gold bg-gray-800/70 shadow-lg shadow-poker-gold/10'
+                    : 'text-gray-500 border-b-2 border-transparent hover:text-gray-300 hover:bg-gray-800/30'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -158,6 +161,21 @@ export function LobbyView() {
           className="max-w-7xl mx-auto mb-4 px-4 py-3 rounded-xl bg-gray-800/90 border border-poker-gold/40 text-gray-200 text-sm backdrop-blur-sm shadow-lg"
         >
           {registrationMessage}
+        </div>
+      )}
+
+      {/* Tourneys coming soon state */}
+      {activeTab === 'tourneys' && !loading && (
+        <div className="max-w-7xl mx-auto text-center py-20">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-800/60 border border-gray-700 mb-6">
+            <svg className="w-10 h-10 text-poker-gold/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.996.178-1.768.65-2.08 1.283m0 0a5.607 5.607 0 01-.18.668c-.263.773-.267 1.59.01 2.374A3.757 3.757 0 004.5 10.5m-1.33-4.98C3.88 5.205 4.66 5 5.5 5h13c.84 0 1.62.205 2.33.52M18.75 4.236c.996.178 1.768.65 2.08 1.283m0 0c.07.21.13.427.18.668.263.773.267 1.59-.01 2.374A3.757 3.757 0 0119.5 10.5m1.33-4.98C20.12 5.205 19.34 5 18.5 5" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold text-gray-300 mb-2">Tournaments Coming Soon</h3>
+          <p className="text-gray-500 text-sm max-w-md mx-auto">
+            Multi-table tournaments with bigger prize pools are on the way. Stay tuned for updates.
+          </p>
         </div>
       )}
 
@@ -184,8 +202,8 @@ export function LobbyView() {
         </div>
       )}
 
-      {/* Empty state */}
-      {!loading && !error && filteredGames.length === 0 && <EmptyLobbyMessage />}
+      {/* Empty state (for Spin & Go / Heads Up when no games) */}
+      {!loading && !error && activeTab !== 'tourneys' && filteredGames.length === 0 && <EmptyLobbyMessage />}
 
       {/* Game grid */}
       {!loading && !error && filteredGames.length > 0 && (

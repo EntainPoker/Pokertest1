@@ -6,6 +6,7 @@ import { LobbyPage } from './pages/LobbyPage';
 import { GamePage } from './pages/GamePage';
 import { AdminPage } from './pages/AdminPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
+import { HistoryPage } from './pages/HistoryPage';
 
 function App() {
   return (
@@ -33,6 +34,14 @@ function App() {
           element={
             <AuthGuard>
               <GamePage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/history"
+          element={
+            <AuthGuard>
+              <HistoryPage />
             </AuthGuard>
           }
         />
