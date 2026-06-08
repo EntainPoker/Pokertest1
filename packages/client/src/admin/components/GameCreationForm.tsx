@@ -76,7 +76,8 @@ export function GameCreationForm() {
         startingChips,
         tableTheme: tableTheme as any,
         turnTimeSeconds,
-      });
+        gameType: activeTab === 'heads-up' ? 'heads-up' : activeTab === 'tourney' ? 'tourney' : 'spin-and-go',
+      } as any);
       setName('');
       setValidationError(null);
     } catch {
