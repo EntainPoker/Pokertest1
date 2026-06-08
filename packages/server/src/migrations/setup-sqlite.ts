@@ -106,5 +106,12 @@ export function runSQLiteMigrations(): void {
     db.exec("ALTER TABLE game_instances ADD COLUMN game_type TEXT DEFAULT 'spin-and-go'");
   } catch { /* column already exists */ }
 
+  // Fix existing games that have NULL game_type — set based on max_players
+  try {
+    db.exec("UPDATE game_instances SET game_type = 'heads-up' WHERE game_type IS NULL AND max_players = 2");
+    db.exec("UPDATE game_instances SET game_type = 'spin-and-go' WHERE game_type IS NULL AND max_players = 3");
+    db.exec("UPDATE game_instances SET game_type = 'spin-and-go' WHERE game_type IS NULL");
+  } catch { /* ignore if fails */ }
+
   console.log('SQLite database tables created successfully.');
 }
