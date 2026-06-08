@@ -160,22 +160,8 @@ export function LobbyView() {
         </div>
       )}
 
-      {/* Tourneys coming soon state */}
-      {activeTab === 'tourneys' && !loading && (
-        <div className="max-w-7xl mx-auto text-center py-20">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-800/60 border border-gray-700 mb-6">
-            <svg className="w-10 h-10 text-poker-gold/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.996.178-1.768.65-2.08 1.283m0 0a5.607 5.607 0 01-.18.668c-.263.773-.267 1.59.01 2.374A3.757 3.757 0 004.5 10.5m-1.33-4.98C3.88 5.205 4.66 5 5.5 5h13c.84 0 1.62.205 2.33.52M18.75 4.236c.996.178 1.768.65 2.08 1.283m0 0c.07.21.13.427.18.668.263.773.267 1.59-.01 2.374A3.757 3.757 0 0119.5 10.5m1.33-4.98C20.12 5.205 19.34 5 18.5 5" />
-            </svg>
-          </div>
-          <h3 className="text-xl font-bold text-gray-300 mb-2">Tournaments Coming Soon</h3>
-          <p className="text-gray-500 text-sm max-w-md mx-auto">
-            Multi-table tournaments with bigger prize pools are on the way. Stay tuned for updates.
-          </p>
-        </div>
-      )}
-
-      {/* Loading state */}
+      {/* Empty state (for any tab when no games) */}
+      {!loading && !error && filteredGames.length === 0 && <EmptyLobbyMessage />}
       {loading && (
         <div className="flex justify-center py-16">
           <div className="animate-spin rounded-full h-10 w-10 border-2 border-poker-gold border-t-transparent" role="status">
