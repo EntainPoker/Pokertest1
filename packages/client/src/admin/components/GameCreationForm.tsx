@@ -127,7 +127,7 @@ export function GameCreationForm() {
               : 'text-gray-500 border-transparent hover:text-gray-700'
           }`}
         >
-          Tournament
+          Tourney
         </button>
       </div>
 
