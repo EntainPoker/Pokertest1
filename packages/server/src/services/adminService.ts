@@ -79,6 +79,7 @@ export function listGameInstances(statusFilter?: string): GameInstance[] {
     createdAt: new Date(row.created_at),
     endDate: new Date(row.end_date),
     createdBy: row.created_by,
+    gameType: row.game_type || 'spin-and-go',
   }));
 }
 
