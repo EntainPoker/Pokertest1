@@ -6,7 +6,7 @@ interface GameInstanceListProps {
   onSelect?: (game: GameInstance) => void;
 }
 
-type GameFilter = 'all' | 'spin-and-go' | 'heads-up';
+type GameFilter = 'all' | 'spin-and-go' | 'heads-up' | 'tourney';
 
 export function GameInstanceList({ onSelect }: GameInstanceListProps) {
   const { games, loading, error, fetchGames, deleteGame } = useAdminStore();
