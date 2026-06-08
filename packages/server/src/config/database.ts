@@ -5,7 +5,10 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Database file stored in the server package root
+// Database file stored in a persistent location.
+// On Render: set DATABASE_PATH env var to a persistent disk path (e.g., /opt/render/data/spin-and-go.db)
+// Without persistent disk, SQLite data is LOST on every deploy (ephemeral filesystem).
+// For production: switch to PostgreSQL for data that persists across deploys.
 const DB_PATH = process.env.DATABASE_PATH || path.join(__dirname, '..', '..', 'data', 'spin-and-go.db');
 
 // Ensure the data directory exists
