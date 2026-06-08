@@ -255,8 +255,10 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
           </div>
         )}
 
-        {/* === OPPONENT SECTION — at the very TOP, ABOVE the table === */}
-        <div className="shrink-0 flex flex-col items-center pt-1">
+        {/* === OPPONENT SECTION — positioned around the table === */}
+        {/* For 2-handed: single opponent at top */}
+        {/* For 3+: opponents spread left, top, right */}
+        <div className={`shrink-0 w-full max-w-xl lg:max-w-2xl mx-auto ${topIndices.length === 1 ? 'flex justify-center' : topIndices.length === 2 ? 'flex justify-between px-4' : 'flex justify-between px-2'} pt-1`}>
           {topIndices.map((idx) => {
             const p = players[idx];
             if (!p) return null;
@@ -285,12 +287,12 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
                 </div>
 
                 {/* Name pill + avatar */}
-                <div className="flex items-center gap-1.5">
-                  <div className={`bg-gray-900/90 border rounded-full px-3 py-1 shadow-lg flex items-center gap-1.5 ${
+                <div className="flex items-center gap-1">
+                  <div className={`bg-gray-900/90 border rounded-full px-2 py-0.5 shadow-lg flex items-center gap-1 ${
                     isWinner ? 'border-yellow-400/70' : currentPlayerIndex === idx ? 'border-poker-gold/70' : 'border-gray-700'
                   }`}>
                     {positionLabels.get(idx) && (
-                      <span className={`text-[7px] sm:text-[8px] font-bold px-1 py-0.5 rounded ${
+                      <span className={`text-[6px] sm:text-[7px] font-bold px-0.5 py-0.5 rounded ${
                         positionLabels.get(idx) === 'BTN' ? 'bg-white text-gray-900' :
                         positionLabels.get(idx) === 'SB' ? 'bg-blue-600/80 text-white' :
                         positionLabels.get(idx) === 'BB' ? 'bg-orange-600/80 text-white' :
@@ -298,15 +300,15 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
                       }`}>{positionLabels.get(idx)}</span>
                     )}
                     <div className="flex flex-col items-center leading-tight">
-                      <span className="text-[10px] sm:text-xs text-gray-100 font-medium truncate max-w-[56px]">{p.username}</span>
-                      <span className="text-[10px] sm:text-xs text-poker-gold font-bold">${p.chipCount}</span>
+                      <span className="text-[9px] sm:text-[10px] text-gray-100 font-medium truncate max-w-[48px]">{p.username}</span>
+                      <span className="text-[9px] sm:text-[10px] text-poker-gold font-bold">${p.chipCount}</span>
                     </div>
                     {actionText && !isWinner && (
-                      <span className="text-[7px] sm:text-[8px] font-bold text-amber-300 bg-gray-800 px-1 py-0.5 rounded-sm">{actionText}</span>
+                      <span className="text-[6px] sm:text-[7px] font-bold text-amber-300 bg-gray-800 px-0.5 py-0.5 rounded-sm">{actionText}</span>
                     )}
                   </div>
-                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm shadow-md bg-gradient-to-br ${getAvatarGradient(p.username)} ${
-                    currentPlayerIndex === idx ? 'ring-2 ring-poker-gold animate-pulse' : 'ring-2 ring-gray-600/50'
+                  <div className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white font-bold text-[10px] sm:text-xs shadow-md bg-gradient-to-br ${getAvatarGradient(p.username)} ${
+                    currentPlayerIndex === idx ? 'ring-2 ring-poker-gold animate-pulse' : 'ring-1 ring-gray-600/50'
                   }`}>{p.username.charAt(0).toUpperCase()}</div>
                 </div>
               </div>
