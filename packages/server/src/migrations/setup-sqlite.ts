@@ -101,5 +101,10 @@ export function runSQLiteMigrations(): void {
     db.exec("ALTER TABLE game_instances ADD COLUMN table_theme TEXT DEFAULT 'classic-green'");
   } catch { /* column already exists */ }
 
+  // Add game_type column to distinguish spin-and-go, heads-up, tourney
+  try {
+    db.exec("ALTER TABLE game_instances ADD COLUMN game_type TEXT DEFAULT 'spin-and-go'");
+  } catch { /* column already exists */ }
+
   console.log('SQLite database tables created successfully.');
 }
