@@ -35,7 +35,8 @@ export function GameInstanceCard({ game, currentPlayerId, onRegister, onUnregist
   const insufficientBalance = isOpen && !isFull && !isRegistered && balance < game.buyIn;
   const badge = getStatusBadge(game.status);
 
-  const formatLabel = game.maxPlayers === 2 ? 'Heads-Up' : `${game.maxPlayers}-Max`;
+  const gameType = (game as any).gameType || (game.maxPlayers === 2 ? 'heads-up' : 'spin-and-go');
+  const formatLabel = gameType === 'tourney' ? 'TOURNEY' : gameType === 'heads-up' ? 'HEADS-UP' : `${game.maxPlayers}-MAX`;
   const prizeMultiplier = game.buyIn * game.maxPlayers;
 
   return (
