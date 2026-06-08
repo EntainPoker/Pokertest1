@@ -80,7 +80,7 @@ export function listGameInstances(statusFilter?: string): GameInstance[] {
     createdAt: new Date(row.created_at),
     endDate: new Date(row.end_date),
     createdBy: row.created_by,
-    gameType: row.game_type || 'spin-and-go',
+    gameType: row.game_type || (row.max_players === 2 ? 'heads-up' : row.max_players >= 4 ? 'tourney' : 'spin-and-go'),
   }));
 }
 
