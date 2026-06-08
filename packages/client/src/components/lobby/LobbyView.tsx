@@ -85,16 +85,12 @@ export function LobbyView() {
     }
   };
 
-  // Filter games based on active tab
+  // Filter games based on active tab using gameType field
   const filteredGames = games.filter(game => {
-    if (activeTab === 'heads-up') {
-      return game.maxPlayers === 2;
-    }
-    if (activeTab === 'tourneys') {
-      return false; // Coming soon — no games to show
-    }
-    // spin-and-go: 3+ players
-    return game.maxPlayers >= 3;
+    const gameType = (game as any).gameType || (game.maxPlayers === 2 ? 'heads-up' : 'spin-and-go');
+    if (activeTab === 'heads-up') return gameType === 'heads-up';
+    if (activeTab === 'tourneys') return gameType === 'tourney';
+    return gameType === 'spin-and-go';
   });
 
   const tabs: { key: FilterTab; label: string }[] = [
