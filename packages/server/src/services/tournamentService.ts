@@ -84,9 +84,9 @@ export function checkAndStartTournament(gameInstanceId: string): void {
     // 4. Spawn a new game instance of the same type with 0 players and 'open' status
     const newId = crypto.randomUUID().replace(/-/g, '');
     client.query(
-      `INSERT INTO game_instances (id, name, format, max_players, buy_in, starting_chips, blind_interval_minutes, status, created_at, end_date)
-       VALUES (?, ?, 'texas_holdem', ?, ?, ?, ?, 'open', datetime('now'), datetime('now', '+30 days'))`,
-      [newId, game.name, maxPlayers, game.buy_in, game.starting_chips, game.blind_interval_minutes]
+      `INSERT INTO game_instances (id, name, format, max_players, buy_in, starting_chips, blind_interval_minutes, game_type, status, created_at, end_date)
+       VALUES (?, ?, 'texas_holdem', ?, ?, ?, ?, ?, 'open', datetime('now'), datetime('now', '+30 days'))`,
+      [newId, game.name, maxPlayers, game.buy_in, game.starting_chips, game.blind_interval_minutes, game.game_type || (maxPlayers === 2 ? 'heads-up' : 'spin-and-go')]
     );
 
     return { tournamentId: tId, newGameId: newId };
