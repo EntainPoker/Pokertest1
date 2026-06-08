@@ -36,13 +36,13 @@ query(
 const existing = query(`SELECT id FROM game_instances WHERE status = 'open' LIMIT 1`, []);
 if (existing.rows.length === 0) {
   query(
-    `INSERT INTO game_instances (id, name, format, max_players, buy_in, starting_chips, blind_interval_minutes, status, created_at, end_date)
-     VALUES (lower(hex(randomblob(16))), 'Spin & Go #1', 'texas_holdem', 3, 1, 500, 3, 'open', datetime('now'), datetime('now', '+30 days'))`,
+    `INSERT INTO game_instances (id, name, format, max_players, buy_in, starting_chips, blind_interval_minutes, game_type, status, created_at, end_date)
+     VALUES (lower(hex(randomblob(16))), 'Spin & Go #1', 'texas_holdem', 3, 1, 500, 3, 'spin-and-go', 'open', datetime('now'), datetime('now', '+30 days'))`,
     []
   );
   query(
-    `INSERT INTO game_instances (id, name, format, max_players, buy_in, starting_chips, blind_interval_minutes, status, created_at, end_date)
-     VALUES (lower(hex(randomblob(16))), 'Heads-Up Showdown', 'texas_holdem', 2, 1, 500, 3, 'open', datetime('now'), datetime('now', '+30 days'))`,
+    `INSERT INTO game_instances (id, name, format, max_players, buy_in, starting_chips, blind_interval_minutes, game_type, status, created_at, end_date)
+     VALUES (lower(hex(randomblob(16))), 'Heads-Up Showdown', 'texas_holdem', 2, 1, 500, 3, 'heads-up', 'open', datetime('now'), datetime('now', '+30 days'))`,
     []
   );
 }
