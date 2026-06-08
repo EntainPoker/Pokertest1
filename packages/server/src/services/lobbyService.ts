@@ -19,7 +19,7 @@ function mapRowToGame(row: Record<string, unknown>): Omit<GameInstance, 'created
     status: row.status as GameInstance['status'],
     createdAt: new Date(row.created_at as string),
     endDate: new Date(row.end_date as string),
-    gameType: (row.game_type as string) || 'spin-and-go',
+    gameType: (row.game_type as string) || ((row.max_players as number) === 2 ? 'heads-up' : 'spin-and-go'),
   };
 }
 
