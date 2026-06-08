@@ -72,6 +72,9 @@ router.post('/games', async (req: Request, res: Response) => {
   try {
     const { name, maxPlayers, blindIntervalMinutes, maxBlindLevel, startingChips, tableTheme } = req.body as GameCreationRequest;
 
+    // Determine game type from request body or infer from maxPlayers
+    const gameType = (req.body as any).gameType || (maxPlayers === 2 ? 'heads-up' : maxPlayers >= 4 ? 'tourney' : 'spin-and-go');
+
     // Validate parameters before creating
     const validation = adminService.validateGameCreationParams(name, maxPlayers);
     if (!validation.valid) {
@@ -90,6 +93,7 @@ router.post('/games', async (req: Request, res: Response) => {
       blindIntervalMinutes || 3,
       startingChips || 500,
       tableTheme || 'classic-green',
+      gameType,
     );
 
     res.status(201).json({ game });
