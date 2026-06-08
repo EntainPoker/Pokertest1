@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAdminStore } from '../stores/adminStore';
 
-type GameTypeTab = 'spin-and-go' | 'heads-up';
+type GameTypeTab = 'spin-and-go' | 'heads-up' | 'tourney';
 
 const TABLE_THEMES = [
   { value: 'classic-green', label: 'Classic Green' },
