@@ -28,6 +28,7 @@ export interface GameInstance {
   endDate: Date;
   createdBy: string;
   tableTheme?: string;
+  gameType?: 'spin-and-go' | 'heads-up' | 'tourney';
 }
 
 /** A tournament spawned from a game instance */
