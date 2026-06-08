@@ -51,6 +51,7 @@ export function createGameInstance(
     endDate: new Date(row.end_date),
     createdBy: row.created_by,
     tableTheme: row.table_theme || 'classic-green',
+    gameType: row.game_type || gameType,
   };
 }
 
