@@ -117,6 +117,17 @@ export function GameCreationForm() {
         >
           Heads Up
         </button>
+        <button
+          type="button"
+          onClick={() => handleTabChange('tourney')}
+          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${
+            activeTab === 'tourney'
+              ? 'text-blue-600 border-blue-600'
+              : 'text-gray-500 border-transparent hover:text-gray-700'
+          }`}
+        >
+          Tournament
+        </button>
       </div>
 
       {displayError && (
