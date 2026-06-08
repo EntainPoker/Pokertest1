@@ -184,8 +184,8 @@ export function LobbyView() {
         </div>
       )}
 
-      {/* Empty state (for Spin & Go / Heads Up when no games) */}
-      {!loading && !error && activeTab !== 'tourneys' && filteredGames.length === 0 && <EmptyLobbyMessage />}
+      {/* Empty state */}
+      {!loading && !error && filteredGames.length === 0 && <EmptyLobbyMessage />}
 
       {/* Game grid */}
       {!loading && !error && filteredGames.length > 0 && (
