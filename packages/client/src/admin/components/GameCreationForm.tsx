@@ -29,6 +29,8 @@ export function GameCreationForm() {
     setActiveTab(tab);
     if (tab === 'heads-up') {
       setMaxPlayers(2);
+    } else if (tab === 'tourney') {
+      setMaxPlayers(6);
     } else {
       setMaxPlayers(3);
     }
