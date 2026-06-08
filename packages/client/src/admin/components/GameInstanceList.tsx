@@ -59,8 +59,10 @@ export function GameInstanceList({ onSelect }: GameInstanceListProps) {
 
   // Filter games by type
   const filteredGames = games.filter(game => {
-    if (filter === 'heads-up') return game.maxPlayers === 2;
-    if (filter === 'spin-and-go') return game.maxPlayers >= 3;
+    const gameType = (game as any).gameType || (game.maxPlayers === 2 ? 'heads-up' : 'spin-and-go');
+    if (filter === 'heads-up') return gameType === 'heads-up';
+    if (filter === 'spin-and-go') return gameType === 'spin-and-go';
+    if (filter === 'tourney') return gameType === 'tourney';
     return true; // 'all'
   });
 
