@@ -4,6 +4,10 @@ interface CardProps {
   rank?: CardType['rank'];
   suit?: CardType['suit'];
   faceDown?: boolean;
+  /** Highlight this card with a golden glow (part of winning best 5) */
+  highlighted?: boolean;
+  /** Dim/grey out this card (losing player's hand) */
+  dimmed?: boolean;
 }
 
 /** Unicode suit symbols */

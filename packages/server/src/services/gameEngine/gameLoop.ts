@@ -632,7 +632,7 @@ function handleShowdown(gameInstanceId: string): void {
 
   // Evaluate hands and award each pot
   const communityCards = handState.communityCards;
-  const potResults: { winnerId: string; amount: number; handName?: string }[] = [];
+  const potResults: { winnerId: string; amount: number; handName?: string; bestCards?: Card[] }[] = [];
 
   for (const pot of pots) {
     // Get eligible players who haven't folded
@@ -657,7 +657,7 @@ function handleShowdown(gameInstanceId: string): void {
       if (result.winnerIds.length === 1) {
         const winner = handState.players.find(p => p.playerId === result.winnerIds[0])!;
         winner.chipCount += pot.amount;
-        potResults.push({ winnerId: winner.playerId, amount: pot.amount, handName: result.handRanking.name });
+        potResults.push({ winnerId: winner.playerId, amount: pot.amount, handName: result.handRanking.name, bestCards: result.handRanking.cards });
       } else {
         // Split pot
         const splitAmount = Math.floor(pot.amount / result.winnerIds.length);
@@ -668,7 +668,7 @@ function handleShowdown(gameInstanceId: string): void {
           // Give remainder to first winner (standard rule)
           const amount = splitAmount + (idx === 0 ? remainder : 0);
           winner.chipCount += amount;
-          potResults.push({ winnerId, amount, handName: result.handRanking.name });
+          potResults.push({ winnerId, amount, handName: result.handRanking.name, bestCards: result.handRanking.cards });
         });
       }
     }
