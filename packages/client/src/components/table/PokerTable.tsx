@@ -391,7 +391,24 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
           {/* Opponent bet chips — top area of table, below opponent */}
           {topIndices.map((idx) => {
             const p = players[idx];
-            if (!p || !p.currentBet || p.currentBet <= 0) return null;
+            if (!p) return null;
+
+            // At showdown, show won amount in front of winner instead of bet chips
+            const opponentWin = isShowdown && showdownResults?.find(r => r.winnerId === p.playerId);
+            if (opponentWin) {
+              return (
+                <div key={`win-${p.playerId}`} className="absolute top-[18%] left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 animate-slide-in">
+                  <div className="relative flex">
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 border-2 border-amber-700 shadow-md" />
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-red-400 to-red-600 border-2 border-red-800 shadow-md -ml-2" />
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-blue-800 shadow-md -ml-2" />
+                  </div>
+                  <span className="text-[10px] sm:text-xs font-bold text-green-300 bg-gray-900/80 px-1.5 py-0.5 rounded shadow">+${opponentWin.amount}</span>
+                </div>
+              );
+            }
+
+            if (!p.currentBet || p.currentBet <= 0) return null;
             return (
               <div key={`bet-${p.playerId}`} className="absolute top-[18%] left-1/2 -translate-x-1/2 z-10 flex items-center gap-1">
                 <div className="relative flex">
