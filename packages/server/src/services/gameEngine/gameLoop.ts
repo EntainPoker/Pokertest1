@@ -680,10 +680,10 @@ function handleShowdown(gameInstanceId: string): void {
   (handState as any).showdownResults = potResults;
 
   // Update hand state
-  // Only store side pots if there are MULTIPLE pots (actual side pot scenario)
-  // A single pot is just the main pot — no need to show "Side:" display
+  // Only store side pots if there are MULTIPLE pots with 2+ eligible players (actual contested side pots)
+  const contestedPots = pots.filter(p => p.eligiblePlayerIds.length >= 2);
   handState.pot = 0;
-  handState.sidePots = pots.length > 1 ? pots : [];
+  handState.sidePots = contestedPots.length > 1 ? contestedPots : [];
 
   // Clear all player currentBet values — bets have been collected into the pot
   for (const p of handState.players) {
