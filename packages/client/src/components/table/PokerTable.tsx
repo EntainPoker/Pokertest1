@@ -335,6 +335,12 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
             const opponentCards = getHoleCards(idx);
             const showFaceUp = shouldShowCards(idx);
 
+            // Showdown card styling
+            const isLoser = isShowdown && !isFolded && !winnerIds.has(p.playerId) && winnerIds.size > 0;
+            const highlightedHoleIndices = isShowdown && isWinner && winnerBestCards.length > 0 && opponentCards.length > 0
+              ? getHighlightedHoleCards(winnerBestCards, opponentCards, communityCards)
+              : undefined;
+
             return (
               <div key={p.playerId} className={`flex flex-col items-center ${isFolded ? 'opacity-40 grayscale' : ''}`}>
                 {/* Opponent hole cards */}
@@ -342,7 +348,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
                   {showFaceUp && opponentCards.length > 0 ? (
                     opponentCards.map((card, i) => (
                       <div key={i} className={`${i === 1 ? '-ml-4' : ''}`}>
-                        <Card rank={card.rank} suit={card.suit} />
+                        <Card rank={card.rank} suit={card.suit} highlighted={highlightedHoleIndices?.has(i)} dimmed={isLoser} />
                       </div>
                     ))
                   ) : !isFolded ? (
@@ -427,20 +433,31 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
           <div className="shrink-0 flex flex-col items-center pb-1">
             {/* Hero hole cards — large */}
             <div className="flex mb-1">
-              {getHoleCards(bottomIndex).length > 0 ? (
-                getHoleCards(bottomIndex).map((card, i) => (
-                  <div key={i} className={`${i === 1 ? '-ml-4 sm:-ml-5' : ''}`}>
-                    <div className="scale-110 sm:scale-125 origin-bottom">
-                      <Card rank={card.rank} suit={card.suit} />
+              {(() => {
+                const heroCards = getHoleCards(bottomIndex);
+                const heroIsLoser = isShowdown && !winnerIds.has(heroPlayer.playerId) && winnerIds.size > 0 && heroPlayer.status !== 'folded';
+                const heroHighlightedIndices = isShowdown && heroIsWinner && winnerBestCards.length > 0 && heroCards.length > 0
+                  ? getHighlightedHoleCards(winnerBestCards, heroCards, communityCards)
+                  : undefined;
+
+                if (heroCards.length > 0) {
+                  return heroCards.map((card, i) => (
+                    <div key={i} className={`${i === 1 ? '-ml-4 sm:-ml-5' : ''}`}>
+                      <div className="scale-110 sm:scale-125 origin-bottom">
+                        <Card rank={card.rank} suit={card.suit} highlighted={heroHighlightedIndices?.has(i)} dimmed={heroIsLoser} />
+                      </div>
                     </div>
-                  </div>
-                ))
-              ) : !heroPlayer.status?.includes('folded') ? (
-                <>
-                  <div className="scale-110 sm:scale-125 origin-bottom"><Card faceDown /></div>
-                  <div className="-ml-4 sm:-ml-5 scale-110 sm:scale-125 origin-bottom"><Card faceDown /></div>
-                </>
-              ) : null}
+                  ));
+                } else if (!heroPlayer.status?.includes('folded')) {
+                  return (
+                    <>
+                      <div className="scale-110 sm:scale-125 origin-bottom"><Card faceDown /></div>
+                      <div className="-ml-4 sm:-ml-5 scale-110 sm:scale-125 origin-bottom"><Card faceDown /></div>
+                    </>
+                  );
+                }
+                return null;
+              })()}
             </div>
 
             {/* Avatar + Name pill */}
