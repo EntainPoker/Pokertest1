@@ -47,19 +47,7 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
       }`}
       aria-label={`${player.username}${isActive ? ' (active)' : ''}${isFolded ? ' (folded)' : ''}${isAllIn ? ' (all-in)' : ''}`}
     >
-      {/* Winner banner (Rule 234-235: "Player WINS $X with Hand Type") */}
-      {isWinner && (
-        <div className="absolute -top-9 left-1/2 -translate-x-1/2 z-20 whitespace-nowrap">
-          <div className="bg-gradient-to-r from-yellow-400 to-amber-500 text-gray-900 text-[9px] sm:text-[11px] font-black px-3 py-1 rounded-lg shadow-xl animate-bounce text-center">
-            <span>🏆 {player.username} Wins ${lastAction?.match(/\$(\d+)/)?.[1] || ''}</span>
-            {lastAction?.includes('\u2014') && (
-              <span className="block text-[8px] sm:text-[10px] font-bold text-gray-700">
-                with {lastAction.split('\u2014')[1]?.trim()}
-              </span>
-            )}
-          </div>
-        </div>
-      )}
+
 
       {/* Last action badge (non-winner) */}
       {lastAction && !isWinner && (

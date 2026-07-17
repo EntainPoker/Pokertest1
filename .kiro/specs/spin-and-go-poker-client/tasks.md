@@ -279,7 +279,7 @@ This implementation plan breaks down the Spin and Go poker client into increment
     - Generate completed tournaments and verify prize pool = players × buy-in and full amount goes to 1st place
     - **Validates: Requirements 10.3, 10.5**
 
-- [ ] 11. Implement poker table UI
+- [x] 11. Implement poker table UI
   - [x] 11.1 Implement poker table display components
     - Create PokerTable.tsx: main table layout with 3 player positions arranged around the table
     - Create PlayerSeat.tsx: display username, chip count, current bet, active/folded state, highlight for active player

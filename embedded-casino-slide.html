@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #1a1a2e; color: white; width: 1920px; height: 1080px; overflow: hidden; }
+
+.slide { width: 1920px; height: 1080px; padding: 40px 60px; display: flex; flex-direction: column; }
+
+/* Header */
+.header { margin-bottom: 16px; }
+.title { font-size: 34px; font-weight: 700; margin-bottom: 6px; }
+.subtitle { font-size: 16px; color: #8892b0; }
+
+/* Key Finding Banner */
+.key-finding { background: linear-gradient(135deg, #1e3a5f, #2563eb); border-radius: 10px; padding: 16px 28px; margin-bottom: 20px; border-left: 5px solid #60a5fa; }
+.key-finding p { font-size: 15px; line-height: 1.5; }
+.key-finding strong { color: #93c5fd; }
+
+/* Middle Section - Chart Left, KPIs Right */
+.middle { display: flex; gap: 30px; margin-bottom: 20px; flex: 1; }
+
+/* Chart area */
+.chart-area { flex: 1.4; background: #0d1117; border: 1px solid #2d3748; border-radius: 10px; padding: 15px; display: flex; flex-direction: column; }
+.chart-title { font-size: 14px; font-weight: 600; color: #e2e8f0; margin-bottom: 10px; }
+.chart-img { width: 100%; flex: 1; border-radius: 6px; object-fit: contain; }
+.chart-placeholder { flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; color: #4a5568; font-size: 14px; }
+
+/* KPI + Observations Right Panel */
+.right-panel { flex: 0.8; display: flex; flex-direction: column; gap: 15px; }
+
+/* KPI Cards */
+.kpi-card { background: linear-gradient(135deg, #16213e, #1a1a2e); border: 1px solid #2563eb; border-radius: 10px; padding: 18px 20px; text-align: center; }
+.kpi-value { font-size: 34px; font-weight: 800; color: #34d399; margin-bottom: 4px; }
+.kpi-label { font-size: 12px; color: #8892b0; text-transform: uppercase; letter-spacing: 1px; }
+
+/* Observations */
+.observations { background: #16213e; border: 1px solid #2d3748; border-radius: 10px; padding: 18px 20px; flex: 1; overflow-y: auto; }
+.observations h3 { font-size: 13px; color: #60a5fa; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+.observations ul { list-style: none; }
+.observations li { font-size: 12px; color: #cbd5e0; margin-bottom: 9px; padding-left: 14px; position: relative; line-height: 1.4; }
+.observations li::before { content: "▸"; position: absolute; left: 0; color: #34d399; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <!-- Header -->
+  <div class="header">
+    <div class="title">Embedded Casino – PartyPoker iOS Performance</div>
+    <div class="subtitle">27-Day Pre vs Post Analysis | Release Date: 26 May 2026</div>
+  </div>
+
+  <!-- Key Finding -->
+  <div class="key-finding">
+    <p>On 26 May 2026, casino was embedded within the PartyPoker native iOS app, driving <strong>1,858 players</strong> to migrate from iPhoneWeb-based to iPhoneNative and generating a <strong>+11.14% uplift</strong> in daily stakes across the total player base.</p>
+  </div>
+
+  <!-- Middle Section: Chart Left, KPIs + Observations Right -->
+  <div class="middle">
+    <!-- Chart Area (left) -->
+    <div class="chart-area">
+      <div class="chart-title">Daily Stakes by Interface (Stacked)</div>
+      <!-- Replace 'chart.png' with your saved chart image filename -->
+      <!-- <img class="chart-img" src="chart.png" alt="Daily Stakes by Interface"> -->
+      <div class="chart-placeholder">
+        <div>
+          <p style="font-size:16px; margin-bottom:8px;">📊 Save your chart as <strong style="color:#60a5fa;">chart.png</strong> in the same folder</p>
+          <p style="font-size:12px; color:#718096;">Then uncomment the img tag above and comment out this div</p>
+          <p style="font-size:12px; color:#718096; margin-top:8px;">Chart shows: Orange = iPhoneWebbased | Purple = iPhoneNative</p>
+          <p style="font-size:12px; color:#718096;">Red dashed line = Release date (26 May 2026)</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel: KPIs + Observations -->
+    <div class="right-panel">
+      <div class="kpi-card">
+        <div class="kpi-value">+11.14%</div>
+        <div class="kpi-label">Daily Stakes</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">+12.83%</div>
+        <div class="kpi-label">Daily Stakes per Player</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">£23 → £25</div>
+        <div class="kpi-label">Stakes per Active Player / Day</div>
+      </div>
+
+      <!-- Observations -->
+      <div class="observations">
+        <h3>Key Observations</h3>
+        <ul>
+          <li>1,858 players migrated from web-based to native iOS casino experience following launch.</li>
+          <li>Daily stakes increased from £356.7k to £396.4k per day (+11.14%).</li>
+          <li>Daily stakes per player increased from £281 to £317 (+12.83%).</li>
+          <li>Casino game mix remained stable post-launch with no material change in player preferences.</li>
+          <li>RTP remained consistent, confirming uplift was not driven by game economics changes.</li>
+          <li>Initial ~20% increase in first week, stabilising at +11% over full 27-day post-launch period.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
