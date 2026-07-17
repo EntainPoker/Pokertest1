@@ -677,7 +677,24 @@ function handleShowdown(gameInstanceId: string): void {
   }
 
   // Store showdown results on hand state for client display (Rule 234-235)
-  (handState as any).showdownResults = potResults;
+  // Consolidate multiple pot wins for the same player into a single result
+  const consolidatedResults: { winnerId: string; amount: number; handName?: string; bestCards?: Card[] }[] = [];
+  for (const result of potResults) {
+    const existing = consolidatedResults.find(r => r.winnerId === result.winnerId);
+    if (existing) {
+      existing.amount += result.amount;
+      // Keep the hand name and best cards from the first (main pot) win
+      if (!existing.handName && result.handName) {
+        existing.handName = result.handName;
+      }
+      if (!existing.bestCards && result.bestCards) {
+        existing.bestCards = result.bestCards;
+      }
+    } else {
+      consolidatedResults.push({ ...result });
+    }
+  }
+  (handState as any).showdownResults = consolidatedResults;
 
   // Update hand state
   // Only store side pots if there are MULTIPLE pots with 2+ eligible players (actual contested side pots)
