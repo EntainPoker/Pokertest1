@@ -339,7 +339,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
                   {showFaceUp && opponentCards.length > 0 ? (
                     opponentCards.map((card, i) => (
                       <div key={i} className={`${i === 1 ? '-ml-4' : ''}`}>
-                        <Card rank={card.rank} suit={card.suit} highlighted={highlightedHoleIndices?.has(i)} dimmed={isLoser} />
+                        <Card rank={card.rank} suit={card.suit} highlighted={highlightedHoleIndices?.has(i)} dimmed={isLoser || (isWinner && highlightedHoleIndices != null && !highlightedHoleIndices.has(i))} />
                       </div>
                     ))
                   ) : !isFolded ? (
@@ -477,7 +477,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
                   return heroCards.map((card, i) => (
                     <div key={i} className={`${i === 1 ? '-ml-4 sm:-ml-5' : ''}`}>
                       <div className="scale-110 sm:scale-125 origin-bottom">
-                        <Card rank={card.rank} suit={card.suit} highlighted={heroHighlightedIndices?.has(i)} dimmed={heroIsLoser} />
+                        <Card rank={card.rank} suit={card.suit} highlighted={heroHighlightedIndices?.has(i)} dimmed={heroIsLoser || (heroIsWinner && heroHighlightedIndices != null && !heroHighlightedIndices.has(i))} />
                       </div>
                     </div>
                   ));
