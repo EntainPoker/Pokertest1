@@ -479,6 +479,13 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
                 )}
               </div>
             </div>
+
+            {/* Win banner — below hero name pill */}
+            {heroIsWinner && heroActionText && (
+              <div className="mt-1 bg-gradient-to-r from-yellow-400 to-amber-500 text-gray-900 font-black text-[10px] sm:text-xs px-3 py-1 rounded-lg shadow-xl animate-bounce text-center whitespace-nowrap">
+                🏆 {heroActionText}
+              </div>
+            )}
           </div>
         )}
       </div>
