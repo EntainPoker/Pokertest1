@@ -683,6 +683,11 @@ function handleShowdown(gameInstanceId: string): void {
   handState.pot = 0;
   handState.sidePots = pots.length > 1 ? pots : [];
 
+  // Clear all player currentBet values — bets have been collected into the pot
+  for (const p of handState.players) {
+    p.currentBet = 0;
+  }
+
   // Persist and emit
   persistState(gameInstanceId, gameState);
   emitGameState(gameInstanceId, gameState);
