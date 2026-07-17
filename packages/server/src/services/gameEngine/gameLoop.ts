@@ -646,31 +646,33 @@ function handleShowdown(gameInstanceId: string): void {
     if (eligiblePlayers.length === 0) continue;
 
     if (eligiblePlayers.length === 1) {
-      // Only one eligible player — award pot to them
-      const winner = handState.players.find(p => p.playerId === eligiblePlayers[0].playerId)!;
+      // Only one eligible player — return chips silently (uncalled bet / uncontested side pot)
+      // This is NOT a "win" — these chips just come back to the player
+      const player = handState.players.find(p => p.playerId === eligiblePlayers[0].playerId)!;
+      player.chipCount += pot.amount;
+      // Do NOT add to potResults — this is not a display-worthy win
+      continue;
+    }
+
+    // Determine winner(s)
+    const result = determineWinners(eligiblePlayers, communityCards);
+
+    if (result.winnerIds.length === 1) {
+      const winner = handState.players.find(p => p.playerId === result.winnerIds[0])!;
       winner.chipCount += pot.amount;
-      potResults.push({ winnerId: winner.playerId, amount: pot.amount });
+      potResults.push({ winnerId: winner.playerId, amount: pot.amount, handName: result.handRanking.name, bestCards: result.handRanking.cards });
     } else {
-      // Determine winner(s)
-      const result = determineWinners(eligiblePlayers, communityCards);
+      // Split pot
+      const splitAmount = Math.floor(pot.amount / result.winnerIds.length);
+      const remainder = pot.amount - splitAmount * result.winnerIds.length;
 
-      if (result.winnerIds.length === 1) {
-        const winner = handState.players.find(p => p.playerId === result.winnerIds[0])!;
-        winner.chipCount += pot.amount;
-        potResults.push({ winnerId: winner.playerId, amount: pot.amount, handName: result.handRanking.name, bestCards: result.handRanking.cards });
-      } else {
-        // Split pot
-        const splitAmount = Math.floor(pot.amount / result.winnerIds.length);
-        const remainder = pot.amount - splitAmount * result.winnerIds.length;
-
-        result.winnerIds.forEach((winnerId, idx) => {
-          const winner = handState.players.find(p => p.playerId === winnerId)!;
-          // Give remainder to first winner (standard rule)
-          const amount = splitAmount + (idx === 0 ? remainder : 0);
-          winner.chipCount += amount;
-          potResults.push({ winnerId, amount, handName: result.handRanking.name, bestCards: result.handRanking.cards });
-        });
-      }
+      result.winnerIds.forEach((winnerId, idx) => {
+        const winner = handState.players.find(p => p.playerId === winnerId)!;
+        // Give remainder to first winner (standard rule)
+        const amount = splitAmount + (idx === 0 ? remainder : 0);
+        winner.chipCount += amount;
+        potResults.push({ winnerId, amount, handName: result.handRanking.name, bestCards: result.handRanking.cards });
+      });
     }
   }
 
