@@ -34,6 +34,8 @@ export class BettingRound {
    * Returns true when the betting round is complete:
    * - All active (non-folded, non-all-in) players have acted at least once
    * - AND all active players have equal current bets (or all have checked with no outstanding bet)
+   * - OR only one active player remains whose bet already covers the current bet
+   *   (e.g., BB when all others folded or went all-in for less)
    */
   isComplete(): boolean {
     const activePlayers = this.players.filter(
@@ -43,6 +45,15 @@ export class BettingRound {
     // If no active players remain (all folded or all-in), round is complete
     if (activePlayers.length === 0) {
       return true;
+    }
+
+    // If only one active player remains and their bet already covers the current bet,
+    // no action is needed — nobody raised above them (e.g., BB vs all-in for less)
+    if (activePlayers.length === 1) {
+      const sole = activePlayers[0];
+      if (sole.currentBet >= this.currentBet) {
+        return true;
+      }
     }
 
     // All active players must have acted
