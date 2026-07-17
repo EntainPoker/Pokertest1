@@ -738,6 +738,11 @@ function awardPotToLastPlayer(gameInstanceId: string, winner: HandPlayer): void 
   winner.chipCount += potWon;
   handState.pot = 0;
 
+  // Clear all player currentBet values — bets have been collected into the pot
+  for (const p of handState.players) {
+    p.currentBet = 0;
+  }
+
   // Store win info for client display
   (handState as any).showdownResults = [{
     winnerId: winner.playerId,
