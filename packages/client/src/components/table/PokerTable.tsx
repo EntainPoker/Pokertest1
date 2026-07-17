@@ -250,6 +250,11 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
     ? getHighlightedCommunityIndices(winnerBestCards, communityCards)
     : undefined;
 
+  // Community card dimmed indices (board cards NOT in the best 5 — slightly greyed)
+  const dimmedCommunityIndices = isShowdown && highlightedCommunityIndices && highlightedCommunityIndices.size > 0
+    ? new Set(communityCards.map((_, i) => i).filter(i => !highlightedCommunityIndices.has(i)))
+    : undefined;
+
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* ZONE 1: Header Bar */}
@@ -423,7 +428,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
           {/* Center content: pot + community cards */}
           <div className="flex flex-col items-center gap-2 z-10">
             <PotDisplay amount={safePot} sidePots={safeSidePots} />
-            <CommunityCards cards={communityCards} highlightedIndices={highlightedCommunityIndices} />
+            <CommunityCards cards={communityCards} highlightedIndices={highlightedCommunityIndices} dimmedIndices={dimmedCommunityIndices} />
           </div>
 
           {/* Hero bet chips — bottom area of table, above hero */}

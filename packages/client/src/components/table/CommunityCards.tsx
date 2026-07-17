@@ -6,6 +6,8 @@ interface CommunityCardsProps {
   cards: CardType[];
   /** Indices of cards that are part of the winning best 5 (highlighted with golden glow) */
   highlightedIndices?: Set<number>;
+  /** Indices of cards that are NOT part of the winning best 5 (slightly dimmed) */
+  dimmedIndices?: Set<number>;
 }
 
 /**
@@ -15,7 +17,7 @@ interface CommunityCardsProps {
  * Supports highlighting winning cards at showdown.
  * Satisfies Requirements 6.3.
  */
-export function CommunityCards({ cards, highlightedIndices }: CommunityCardsProps) {
+export function CommunityCards({ cards, highlightedIndices, dimmedIndices }: CommunityCardsProps) {
   const [animatingIndices, setAnimatingIndices] = useState<Set<number>>(new Set());
   const prevCountRef = useRef(0);
 
@@ -56,7 +58,7 @@ export function CommunityCards({ cards, highlightedIndices }: CommunityCardsProp
           style={animatingIndices.has(i) ? { animationDelay: `${(i - Math.min(...animatingIndices)) * 100}ms` } : undefined}
         >
           {card ? (
-            <Card rank={card.rank} suit={card.suit} highlighted={highlightedIndices?.has(i)} />
+            <Card rank={card.rank} suit={card.suit} highlighted={highlightedIndices?.has(i)} dimmed={dimmedIndices?.has(i)} />
           ) : (
             <div className="w-12 h-[4.5rem] sm:w-14 sm:h-[5.25rem] rounded-lg border-2 border-green-700/40 bg-green-800/20 shadow-inner" aria-label="Empty card slot" />
           )}
