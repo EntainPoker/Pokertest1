@@ -525,8 +525,9 @@ function advanceToNextRound(gameInstanceId: string): void {
 }
 
 /**
- * When all players are all-in or only one is active, deal remaining community cards
- * sequentially with delays and go to showdown.
+ * When all players are all-in or only one is active, reveal hole cards first,
+ * then deal remaining community cards sequentially with 1-second delays.
+ * Timing: show cards → 1s → flop → 1s → turn → 1s → river → 2s → showdown
  */
 function runOutBoard(gameInstanceId: string): void {
   const instance = gameLoops.get(gameInstanceId);
@@ -537,6 +538,17 @@ function runOutBoard(gameInstanceId: string): void {
 
   const { handState } = gameState;
 
+  // Mark as showdown immediately so hole cards are revealed to all players
+  handState.bettingRound = 'showdown';
+
+  // Clear player bets (chips go into pot visually)
+  for (const p of handState.players) {
+    p.currentBet = 0;
+  }
+
+  // Emit state with revealed hole cards
+  emitGameState(gameInstanceId, gameState);
+
   function emitCommunityCards() {
     io.to(`game:${gameInstanceId}`).emit('game:deal', {
       holeCards: [],
@@ -545,37 +557,58 @@ function runOutBoard(gameInstanceId: string): void {
     emitGameState(gameInstanceId, gameState!);
   }
 
-  // Deal flop if needed
-  if (handState.communityCards.length === 0) {
-    const flopCards = instance.deck.dealFlop();
-    handState.communityCards.push(...flopCards);
-    emitCommunityCards();
+  // After 1 second (let players see the cards), start dealing community cards
+  const cardsAlreadyDealt = handState.communityCards.length;
 
-    // After 2500ms, deal turn
+  if (cardsAlreadyDealt === 0) {
+    // Pre-flop all-in: deal flop after 1s, turn after 1s, river after 1s
+    setTimeout(() => {
+      const gs = activeGameStates.get(gameInstanceId);
+      if (!gs) return;
+      const flopCards = instance.deck.dealFlop();
+      gs.handState.communityCards.push(...flopCards);
+      emitCommunityCards();
+
+      setTimeout(() => {
+        const gs2 = activeGameStates.get(gameInstanceId);
+        if (!gs2) return;
+        gs2.handState.communityCards.push(instance.deck.dealTurn());
+        emitCommunityCards();
+
+        setTimeout(() => {
+          const gs3 = activeGameStates.get(gameInstanceId);
+          if (!gs3) return;
+          gs3.handState.communityCards.push(instance.deck.dealRiver());
+          emitCommunityCards();
+
+          // After 2s, evaluate showdown
+          setTimeout(() => {
+            handleShowdown(gameInstanceId);
+          }, 2000);
+        }, 1000);
+      }, 1000);
+    }, 1000);
+  } else if (cardsAlreadyDealt === 3) {
+    // Flop all-in: deal turn after 1s, river after 1s
     setTimeout(() => {
       const gs = activeGameStates.get(gameInstanceId);
       if (!gs) return;
       gs.handState.communityCards.push(instance.deck.dealTurn());
       emitCommunityCards();
 
-      // After 2500ms, deal river
       setTimeout(() => {
         const gs2 = activeGameStates.get(gameInstanceId);
         if (!gs2) return;
         gs2.handState.communityCards.push(instance.deck.dealRiver());
         emitCommunityCards();
 
-        // After 2000ms, go to showdown
         setTimeout(() => {
           handleShowdown(gameInstanceId);
         }, 2000);
-      }, 2500);
-    }, 2500);
-  } else if (handState.communityCards.length === 3) {
-    // Deal turn
-    handState.communityCards.push(instance.deck.dealTurn());
-    emitCommunityCards();
-
+      }, 1000);
+    }, 1000);
+  } else if (cardsAlreadyDealt === 4) {
+    // Turn all-in: deal river after 1s
     setTimeout(() => {
       const gs = activeGameStates.get(gameInstanceId);
       if (!gs) return;
@@ -585,18 +618,12 @@ function runOutBoard(gameInstanceId: string): void {
       setTimeout(() => {
         handleShowdown(gameInstanceId);
       }, 2000);
-    }, 2500);
-  } else if (handState.communityCards.length === 4) {
-    // Deal river
-    handState.communityCards.push(instance.deck.dealRiver());
-    emitCommunityCards();
-
+    }, 1000);
+  } else {
+    // All cards already dealt (river all-in)
     setTimeout(() => {
       handleShowdown(gameInstanceId);
     }, 2000);
-  } else {
-    // All cards already dealt
-    handleShowdown(gameInstanceId);
   }
 }
 
