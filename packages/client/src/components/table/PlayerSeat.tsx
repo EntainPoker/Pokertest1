@@ -150,6 +150,20 @@ export function PlayerSeat({ player, isActive, isDealer, showCards, holeCards = 
               </>
             )}
       </div>
+
+      {/* Winner banner — positioned below cards and chips so nothing is obscured */}
+      {isWinner && (
+        <div className="mt-1 z-20 whitespace-nowrap">
+          <div className="bg-gradient-to-r from-yellow-400 to-amber-500 text-gray-900 text-[9px] sm:text-[11px] font-black px-3 py-1 rounded-lg shadow-xl animate-bounce text-center">
+            <span>🏆 {player.username} Wins ${lastAction?.match(/\$(\d+)/)?.[1] || ''}</span>
+            {lastAction?.includes('\u2014') && (
+              <span className="block text-[8px] sm:text-[10px] font-bold text-gray-700">
+                with {lastAction.split('\u2014')[1]?.trim()}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
