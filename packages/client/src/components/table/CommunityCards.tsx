@@ -4,15 +4,18 @@ import { Card } from '../shared/Card';
 
 interface CommunityCardsProps {
   cards: CardType[];
+  /** Indices of cards that are part of the winning best 5 (highlighted with golden glow) */
+  highlightedIndices?: Set<number>;
 }
 
 /**
  * Community cards display showing 0-5 cards with deal animations.
  * Cards are revealed progressively: flop (3), turn (4), river (5).
  * New cards animate in with slide-in effect (Rule 249-251).
+ * Supports highlighting winning cards at showdown.
  * Satisfies Requirements 6.3.
  */
-export function CommunityCards({ cards }: CommunityCardsProps) {
+export function CommunityCards({ cards, highlightedIndices }: CommunityCardsProps) {
   const [animatingIndices, setAnimatingIndices] = useState<Set<number>>(new Set());
   const prevCountRef = useRef(0);
 
@@ -53,7 +56,7 @@ export function CommunityCards({ cards }: CommunityCardsProps) {
           style={animatingIndices.has(i) ? { animationDelay: `${(i - Math.min(...animatingIndices)) * 100}ms` } : undefined}
         >
           {card ? (
-            <Card rank={card.rank} suit={card.suit} />
+            <Card rank={card.rank} suit={card.suit} highlighted={highlightedIndices?.has(i)} />
           ) : (
             <div className="w-12 h-[4.5rem] sm:w-14 sm:h-[5.25rem] rounded-lg border-2 border-green-700/40 bg-green-800/20 shadow-inner" aria-label="Empty card slot" />
           )}

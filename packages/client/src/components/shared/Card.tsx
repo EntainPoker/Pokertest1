@@ -27,13 +27,14 @@ function getSuitColor(suit: CardType['suit']): string {
  * Card component displaying a playing card with rank and suit.
  * Shows a premium card back pattern when faceDown is true.
  * Larger sizing for PartyPoker desktop-style visuals.
+ * Supports highlighted (golden glow for winning cards) and dimmed (greyed for losing hand).
  * Satisfies Requirements 6.5, 13.2.
  */
-export function Card({ rank, suit, faceDown = false }: CardProps) {
+export function Card({ rank, suit, faceDown = false, highlighted = false, dimmed = false }: CardProps) {
   if (faceDown || !rank || !suit) {
     return (
       <div
-        className="w-12 h-[4.5rem] sm:w-14 sm:h-[5.25rem] rounded-lg bg-gradient-to-br from-gray-700 via-gray-800 to-gray-950 border-2 border-gray-600/60 shadow-lg flex items-center justify-center overflow-hidden"
+        className={`w-12 h-[4.5rem] sm:w-14 sm:h-[5.25rem] rounded-lg bg-gradient-to-br from-gray-700 via-gray-800 to-gray-950 border-2 border-gray-600/60 shadow-lg flex items-center justify-center overflow-hidden ${dimmed ? 'opacity-40 grayscale' : ''}`}
         aria-label="Face-down card"
         role="img"
       >
@@ -51,8 +52,12 @@ export function Card({ rank, suit, faceDown = false }: CardProps) {
 
   return (
     <div
-      className={`relative w-12 h-[4.5rem] sm:w-14 sm:h-[5.25rem] rounded-lg bg-gradient-to-b from-white to-gray-50 border border-gray-300 shadow-lg flex flex-col items-start justify-start p-1 ${colorClass}`}
-      aria-label={`${rank} of ${suit}`}
+      className={`relative w-12 h-[4.5rem] sm:w-14 sm:h-[5.25rem] rounded-lg bg-gradient-to-b from-white to-gray-50 border shadow-lg flex flex-col items-start justify-start p-1 ${colorClass} ${
+        highlighted
+          ? 'border-yellow-400 ring-2 ring-yellow-400/70 shadow-[0_0_12px_rgba(250,204,21,0.5)]'
+          : 'border-gray-300'
+      } ${dimmed ? 'opacity-40 grayscale' : ''}`}
+      aria-label={`${rank} of ${suit}${highlighted ? ' (winning card)' : ''}${dimmed ? ' (losing hand)' : ''}`}
       role="img"
     >
       {/* Top-left rank + suit */}

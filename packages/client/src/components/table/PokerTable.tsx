@@ -9,6 +9,62 @@ import { getSocket } from '../../services/socket';
 import { useGameStore } from '../../stores/gameStore';
 import { getPositionLabels } from '../../services/positionLabels';
 
+interface ShowdownResult {
+  winnerId: string;
+  amount: number;
+  handName?: string;
+  bestCards?: CardType[];
+}
+
+/** Check if two cards match (same rank and suit) */
+function cardsMatch(a: CardType, b: CardType): boolean {
+  return a.rank === b.rank && a.suit === b.suit;
+}
+
+/** Determine which community card indices are part of the best 5 winning cards */
+function getHighlightedCommunityIndices(bestCards: CardType[], communityCards: CardType[]): Set<number> {
+  const highlighted = new Set<number>();
+  const usedBestIndices = new Set<number>();
+
+  for (let ci = 0; ci < communityCards.length; ci++) {
+    for (let bi = 0; bi < bestCards.length; bi++) {
+      if (!usedBestIndices.has(bi) && cardsMatch(communityCards[ci], bestCards[bi])) {
+        highlighted.add(ci);
+        usedBestIndices.add(bi);
+        break;
+      }
+    }
+  }
+  return highlighted;
+}
+
+/** Determine which of a player's hole cards are part of the best 5 winning cards */
+function getHighlightedHoleCards(bestCards: CardType[], holeCards: CardType[], communityCards: CardType[]): Set<number> {
+  // First figure out which bestCards are accounted for by community cards
+  const usedBestIndices = new Set<number>();
+  for (let ci = 0; ci < communityCards.length; ci++) {
+    for (let bi = 0; bi < bestCards.length; bi++) {
+      if (!usedBestIndices.has(bi) && cardsMatch(communityCards[ci], bestCards[bi])) {
+        usedBestIndices.add(bi);
+        break;
+      }
+    }
+  }
+
+  // Remaining bestCards must come from hole cards
+  const highlighted = new Set<number>();
+  for (let bi = 0; bi < bestCards.length; bi++) {
+    if (usedBestIndices.has(bi)) continue;
+    for (let hi = 0; hi < holeCards.length; hi++) {
+      if (!highlighted.has(hi) && cardsMatch(holeCards[hi], bestCards[bi])) {
+        highlighted.add(hi);
+        break;
+      }
+    }
+  }
+  return highlighted;
+}
+
 interface PokerTableProps {
   handState: HandState;
   currentPlayerId: string;
@@ -58,7 +114,7 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
     const prevPot = prevPotRef.current;
 
     // Detect winner from showdownResults (Rule 234-235)
-    const showdownResults = (handState as any)?.showdownResults as { winnerId: string; amount: number; handName?: string }[] | undefined;
+    const showdownResults = (handState as any)?.showdownResults as ShowdownResult[] | undefined;
     if (showdownResults && showdownResults.length > 0) {
       const newActions: Record<string, string> = {};
       for (const result of showdownResults) {
