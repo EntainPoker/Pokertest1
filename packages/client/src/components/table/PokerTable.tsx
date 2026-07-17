@@ -308,20 +308,6 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
       {/* ZONE 2: Table Area — 3 stacked sections: Opponent / Table Oval / Hero */}
       <div className="flex-1 min-h-0 flex flex-col items-center justify-between bg-gray-900 px-3 py-1 relative">
 
-        {/* Win notification — above everything */}
-        {handState?.bettingRound === 'showdown' && Object.keys(playerActions).some(id => playerActions[id]?.startsWith('WINS')) && (
-          <div className="absolute top-1 left-1/2 -translate-x-1/2 z-30">
-            {Object.entries(playerActions).filter(([, action]) => action?.startsWith('WINS')).map(([playerId, action]) => {
-              const winPlayer = players.find(p => p.playerId === playerId);
-              return (
-                <div key={playerId} className="bg-gradient-to-r from-yellow-400 to-amber-500 text-gray-900 font-black text-sm sm:text-base px-4 py-2 rounded-xl shadow-2xl text-center animate-bounce">
-                  🏆 {winPlayer?.username || 'Player'} {action}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
         {/* === OPPONENT SECTION — positioned around the table === */}
         {/* For 2-handed: single opponent at top */}
         {/* For 3+: opponents spread left, top, right */}
