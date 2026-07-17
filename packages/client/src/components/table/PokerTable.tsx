@@ -427,15 +427,33 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
           </div>
 
           {/* Hero bet chips — bottom area of table, above hero */}
-          {heroPlayer && typeof heroPlayer.currentBet === 'number' && heroPlayer.currentBet > 0 && (
-            <div className="absolute bottom-[18%] left-1/2 -translate-x-1/2 z-10 flex items-center gap-1">
-              <div className="relative flex">
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 border-2 border-amber-700 shadow-md" />
-                {heroPlayer.currentBet >= 50 && <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-red-400 to-red-600 border-2 border-red-800 shadow-md -ml-2" />}
+          {heroPlayer && (() => {
+            // At showdown, show won amount in front of hero if they won
+            const heroWin = isShowdown && showdownResults?.find(r => r.winnerId === heroPlayer.playerId);
+            if (heroWin) {
+              return (
+                <div className="absolute bottom-[18%] left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 animate-slide-in">
+                  <div className="relative flex">
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 border-2 border-amber-700 shadow-md" />
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-red-400 to-red-600 border-2 border-red-800 shadow-md -ml-2" />
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-blue-800 shadow-md -ml-2" />
+                  </div>
+                  <span className="text-[10px] sm:text-xs font-bold text-green-300 bg-gray-900/80 px-1.5 py-0.5 rounded shadow">+${heroWin.amount}</span>
+                </div>
+              );
+            }
+
+            if (typeof heroPlayer.currentBet !== 'number' || heroPlayer.currentBet <= 0) return null;
+            return (
+              <div className="absolute bottom-[18%] left-1/2 -translate-x-1/2 z-10 flex items-center gap-1">
+                <div className="relative flex">
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 border-2 border-amber-700 shadow-md" />
+                  {heroPlayer.currentBet >= 50 && <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-red-400 to-red-600 border-2 border-red-800 shadow-md -ml-2" />}
+                </div>
+                <span className="text-[10px] sm:text-xs font-bold text-white bg-gray-900/70 px-1.5 py-0.5 rounded">${heroPlayer.currentBet}</span>
               </div>
-              <span className="text-[10px] sm:text-xs font-bold text-white bg-gray-900/70 px-1.5 py-0.5 rounded">${heroPlayer.currentBet}</span>
-            </div>
-          )}
+            );
+          })()}
         </div>
 
         {/* === HERO SECTION — at the very BOTTOM, BELOW the table === */}
