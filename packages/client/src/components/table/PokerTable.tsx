@@ -370,6 +370,13 @@ export function PokerTable({ handState, currentPlayerId, gameId, turnTimeRemaini
                     currentPlayerIndex === idx ? 'ring-2 ring-poker-gold animate-pulse' : 'ring-1 ring-gray-600/50'
                   }`}>{p.username.charAt(0).toUpperCase()}</div>
                 </div>
+
+                {/* Win banner — below opponent name pill */}
+                {isWinner && (
+                  <div className="mt-1 bg-gradient-to-r from-yellow-400 to-amber-500 text-gray-900 font-black text-[9px] sm:text-[11px] px-2.5 py-0.5 rounded-lg shadow-xl animate-bounce text-center whitespace-nowrap">
+                    🏆 {actionText}
+                  </div>
+                )}
               </div>
             );
           })}
